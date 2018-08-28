@@ -11,12 +11,14 @@ find_package(catkin REQUIRED
 add_message_files(
   FILES
     ControllerState.msg
+    PlannerState.msg
     DiffDriveLimiterParams.msg
 )
 
 add_action_files(
   FILES
     QueryControllerStates.action
+    QueryPlannerStates.action
 )
 
 generate_messages(DEPENDENCIES actionlib_msgs std_msgs)

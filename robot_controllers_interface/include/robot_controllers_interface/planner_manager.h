@@ -28,40 +28,40 @@
 
 // Author: Michael Ferguson
 
-#ifndef ROBOT_CONTROLLERS_INTERFACE_CONTROLLER_MANAGER_H
-#define ROBOT_CONTROLLERS_INTERFACE_CONTROLLER_MANAGER_H
+#ifndef ROBOT_CONTROLLERS_INTERFACE_PLANNER_MANAGER_H
+#define ROBOT_CONTROLLERS_INTERFACE_PLANNER_MANAGER_H
 
 #include <string>
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 
-#include <robot_controllers_msgs/QueryControllerStatesAction.h>
+#include <robot_controllers_msgs/QueryPlannerStatesAction.h>
 
 #include <robot_controllers_interface/joint_handle.h>
-#include <robot_controllers_interface/controller.h>
-#include <robot_controllers_interface/controller_loader.h>
+#include <robot_controllers_interface/planner.h>
+#include <robot_controllers_interface/planner_loader.h>
 
 namespace robot_controllers
 {
 
-/** @brief Base class for a controller manager. */
-class ControllerManager
+/** @brief Base class for a planner manager. */
+class PlannerManager
 {
-  typedef actionlib::SimpleActionServer<robot_controllers_msgs::QueryControllerStatesAction> server_t;
+  typedef actionlib::SimpleActionServer<robot_controllers_msgs::QueryPlannerStatesAction> server_t;
 
-  typedef std::vector<ControllerLoaderPtr> ControllerList;
+  typedef std::vector<PlannerLoaderPtr> PlannerList;
   typedef std::vector<JointHandlePtr> JointHandleList;
 
 public:
-  ControllerManager();
+  PlannerManager();
 
   /** @brief Ensure proper shutdown with virtual destructor. */
-  virtual ~ControllerManager()
+  virtual ~PlannerManager()
   {
   }
 
   /**
-   * @brief Startup the controller manager, loading default controllers.
+   * @brief Startup the planner manager, loading default planners.
    * @param nh The proper node handle for finding parameters.
    * @returns 0 if success, negative values are error codes.
    *
@@ -69,24 +69,24 @@ public:
    */
   virtual int init(ros::NodeHandle& nh);
 
-  /** @brief Start a controller. */
+  /** @brief Start a planner. */
   virtual int requestStart(const std::string& name);
 
-  /** @brief Stop a controller. */
+  /** @brief Stop a planner. */
   virtual int requestStop(const std::string& name);
 
-  /** @brief Update active controllers. */
+  /** @brief Update active planners. */
   virtual void update(const ros::Time& time, const ros::Duration& dt);
 
-  /** @brief Reset all controllers. */
+  /** @brief Reset all planners. */
   virtual void reset();
 
   /** @brief Add a joint handle. */
   bool addJointHandle(JointHandlePtr& j);
 
   /**
-   * @brief Get the handle associated with a particular joint/controller name.
-   * @param name The name of the joint/controller.
+   * @brief Get the handle associated with a particular joint/planner name.
+   * @param name The name of the joint/planner.
    */
   HandlePtr getHandle(const std::string& name);
 
@@ -99,32 +99,31 @@ public:
   JointHandlePtr getJointHandle(const std::string& name);
 
   /**
-   * @brief Get the handle associated with a particular controller name.
-   * @param name The name of the controller.
+   * @brief Get the handle associated with a particular planner name.
+   * @param name The name of the planner.
    *
    * This is mainly a convienence function.
    */
-  ControllerPtr getController(const std::string& name);
+  PlannerPtr getPlanner(const std::string& name);
 
   /**
-   * @brief Get the names of controllers that have been loaded into the manager.
-   * @returns list of the names of loaded controllers.
+   * @brief Get the names of planners that have been loaded into the manager.
+   * @returns list of the names of loaded planners.
    *
    */
-  std::vector<std::string> getControllerNames();
-
+  std::vector<std::string> getPlannerNames();
 
 private:
   /** @brief Action callback. */
-  void execute(const robot_controllers_msgs::QueryControllerStatesGoalConstPtr& goal);
+  void execute(const robot_controllers_msgs::QueryPlannerStatesGoalConstPtr& goal);
 
-  /** @brief Fill in the current state of controllers. */
-  void getState(robot_controllers_msgs::QueryControllerStatesResult& result);
+  /** @brief Fill in the current state of planners. */
+  void getState(robot_controllers_msgs::QueryPlannerStatesResult& result);
 
-  /** @brief Load a controller. */
+  /** @brief Load a planner. */
   bool load(const std::string& name);
 
-  ControllerList controllers_;
+  PlannerList planners_;
   JointHandleList joints_;
 
   boost::shared_ptr<server_t> server_;
@@ -132,4 +131,4 @@ private:
 
 }  // namespace robot_controllers
 
-#endif  // ROBOT_CONTROLLERS_INTERFACE_CONTROLLER_MANAGER_H
+#endif  // ROBOT_CONTROLLERS_INTERFACE_PLANNER_MANAGER_H

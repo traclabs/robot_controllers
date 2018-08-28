@@ -243,6 +243,28 @@ JointHandlePtr ControllerManager::getJointHandle(const std::string& name)
   return JointHandlePtr();
 }
 
+ControllerPtr ControllerManager::getController(const std::string& name)
+{
+  for (ControllerList::iterator c = controllers_.begin(); c != controllers_.end(); c++)
+  {
+    if ((*c)->getController()->getName() == name)
+      return (*c)->getController();
+  }
+
+  // Not found
+  return ControllerPtr();
+}
+
+std::vector<std::string> ControllerManager::getControllerNames()
+{
+  std::vector<std::string> controller_names;
+  for (ControllerList::iterator c = controllers_.begin(); c != controllers_.end(); c++)
+  {
+    controller_names.push_back((*c)->getController()->getName());
+  }
+  return controller_names;
+}
+
 void ControllerManager::execute(const robot_controllers_msgs::QueryControllerStatesGoalConstPtr& goal)
 {
   robot_controllers_msgs::QueryControllerStatesFeedback feedback;
