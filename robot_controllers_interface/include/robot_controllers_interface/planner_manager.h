@@ -13,8 +13,6 @@
 #include <robot_controllers_interface/planner.h>
 #include <robot_controllers_interface/planner_loader.h>
 
-#include <craftsman_utils/plan_cache_container.h>
-
 namespace robot_controllers
 {
 
@@ -86,9 +84,6 @@ public:
    *
    */
   std::vector<std::string> getPlannerNames();
-
-  /** @brief The container of planner caches for each robot. */
-  craftsman_utils::PlanCacheContainer* cache_container_;
 
 private:
   /** @brief Action callback. */

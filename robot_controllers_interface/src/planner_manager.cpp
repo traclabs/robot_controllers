@@ -45,9 +45,6 @@ int PlannerManager::init(ros::NodeHandle& nh)
     return -1;
   }
 
-  // initialize the pointer to the cache container
-  cache_container_ = craftsman_utils::PlanCacheContainer::getInstance(nh);
-
   // Setup actionlib server
   server_.reset(new server_t(nh, "/query_planner_states",
                              boost::bind(&PlannerManager::execute, this, _1),
