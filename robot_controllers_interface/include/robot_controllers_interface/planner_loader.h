@@ -8,7 +8,7 @@
 #include <pluginlib/class_loader.h>
 #include <robot_controllers_interface/planner.h>
 
-namespace robot_controllers
+namespace robot_planners
 {
 
 // Forward def
@@ -43,13 +43,13 @@ public:
   PlannerPtr getPlanner();
 
 private:
-  pluginlib::ClassLoader<robot_controllers::Planner> plugin_loader_;
+  pluginlib::ClassLoader<Planner> plugin_loader_;
   PlannerPtr planner_;
   bool active_;
 };
 
 typedef boost::shared_ptr<PlannerLoader> PlannerLoaderPtr;
 
-}  // namespace robot_controllers
+}  // namespace robot_planners
 
 #endif  // ROBOT_CONTROLLERS_INTERFACE_PLANNER_LOADER_H

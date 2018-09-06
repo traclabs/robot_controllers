@@ -23,7 +23,7 @@
  *     commands to the mechanism.
  */
 
-namespace robot_controllers
+namespace robot_planners
 {
 
 // Forward define
@@ -35,7 +35,7 @@ class PlannerManager;
  *        thus allowing planners to access other planners (to stack
  *        their commands.
  */
-class Planner : public Handle
+class Planner : public robot_controllers::Handle
 {
 public:
   /**

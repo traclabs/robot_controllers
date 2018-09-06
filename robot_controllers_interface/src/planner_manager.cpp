@@ -3,8 +3,9 @@
 #include <sstream>
 #include <robot_controllers_interface/planner_manager.h>
 
-namespace robot_controllers
-{
+using namespace robot_planners;
+using namespace robot_controllers;
+
 
 PlannerManager::PlannerManager()
 {
@@ -376,4 +377,3 @@ bool PlannerManager::load(const std::string& name)
   return true;
 }
 
-}  // namespace robot_controllers

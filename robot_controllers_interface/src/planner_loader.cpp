@@ -2,11 +2,11 @@
 
 #include <robot_controllers_interface/planner_loader.h>
 
-namespace robot_controllers
+namespace robot_planners
 {
 
 PlannerLoader::PlannerLoader() :
-    plugin_loader_("robot_controllers", "robot_controllers::Planner"),
+    plugin_loader_("robot_planners", "robot_planners::Planner"),
     active_(false)
 {
 }
@@ -78,4 +78,4 @@ PlannerPtr PlannerLoader::getPlanner()
   return planner_;
 }
 
-}  // namespace robot_controllers
+}  // namespace robot_planners

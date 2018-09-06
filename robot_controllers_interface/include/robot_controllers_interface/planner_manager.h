@@ -13,7 +13,7 @@
 #include <robot_controllers_interface/planner.h>
 #include <robot_controllers_interface/planner_loader.h>
 
-namespace robot_controllers
+namespace robot_planners
 {
 
 /** @brief Base class for a planner manager. */
@@ -22,7 +22,7 @@ class PlannerManager
   typedef actionlib::SimpleActionServer<robot_controllers_msgs::QueryPlannerStatesAction> server_t;
 
   typedef std::vector<PlannerLoaderPtr> PlannerList;
-  typedef std::vector<JointHandlePtr> JointHandleList;
+  typedef std::vector<robot_controllers::JointHandlePtr> JointHandleList;
 
 public:
   PlannerManager();
@@ -54,13 +54,13 @@ public:
   virtual void reset();
 
   /** @brief Add a joint handle. */
-  bool addJointHandle(JointHandlePtr& j);
+  bool addJointHandle(robot_controllers::JointHandlePtr& j);
 
   /**
    * @brief Get the handle associated with a particular joint/planner name.
    * @param name The name of the joint/planner.
    */
-  HandlePtr getHandle(const std::string& name);
+  robot_controllers::HandlePtr getHandle(const std::string& name);
 
   /**
    * @brief Get the joint handle associated with a particular joint name.
@@ -68,7 +68,7 @@ public:
    *
    * This is mainly a convienence function.
    */
-  JointHandlePtr getJointHandle(const std::string& name);
+  robot_controllers::JointHandlePtr getJointHandle(const std::string& name);
 
   /**
    * @brief Get the handle associated with a particular planner name.
