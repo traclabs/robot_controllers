@@ -8,7 +8,6 @@
 #include <boost/shared_ptr.hpp>
 #include <ros/ros.h>
 #include <robot_controllers_interface/handle.h>
-#include <craftsman_utils/plan_cache_container.h>
 
 /**
  * \mainpage
@@ -64,8 +63,6 @@ public:
     // remove leading slash
     if (name_.at(0) == '/')
       name_.erase(0, 1);
-
-    cache_container_ = craftsman_utils::PlanCacheContainer::getInstance(nh);
 
     return 0;
   }
@@ -124,10 +121,6 @@ protected:
 
   /** @brief The name of the planner */
   std::string name_;
-
-  /** @brief The container of planner caches for each robot. */
-  craftsman_utils::PlanCacheContainer* cache_container_;
-
 
 };
 
