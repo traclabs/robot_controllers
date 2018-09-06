@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(robot_controllers_interface)
 
-if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 endif()
+
+#if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+#endif()
 
 find_package(Boost REQUIRED system)
 find_package(catkin REQUIRED
@@ -12,6 +16,7 @@ find_package(catkin REQUIRED
     pluginlib
     roscpp
     robot_controllers_msgs
+    craftsman_utils
 )
 
 catkin_package(
@@ -22,6 +27,7 @@ catkin_package(
     pluginlib
     roscpp
     robot_controllers_msgs
+    craftsman_utils
   DEPENDS
     Boost
   LIBRARIES

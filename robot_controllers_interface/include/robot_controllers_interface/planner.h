@@ -8,6 +8,7 @@
 #include <boost/shared_ptr.hpp>
 #include <ros/ros.h>
 #include <robot_controllers_interface/handle.h>
+#include <craftsman_utils/plan_cache_container.h>
 
 /**
  * \mainpage
@@ -63,6 +64,9 @@ public:
     // remove leading slash
     if (name_.at(0) == '/')
       name_.erase(0, 1);
+
+    cache_container_ = craftsman_utils::PlanCacheContainer::getInstance(nh);
+
     return 0;
   }
 
@@ -115,12 +119,22 @@ public:
   /** @brief Get the names of joints/planners which this planner exclusively claims. */
   virtual std::vector<std::string> getClaimedNames() = 0;
 
-private:
+
+protected:
+
+  /** @brief The name of the planner */
   std::string name_;
+
+  /** @brief The container of planner caches for each robot. */
+  craftsman_utils::PlanCacheContainer* cache_container_;
+
+
 };
 
 // Some typedefs
 typedef boost::shared_ptr<Planner> PlannerPtr;
+
+
 
 }  // namespace robot_controllers
 
