@@ -25,7 +25,7 @@ if __name__ == "__main__":
     client.wait_for_server()
     rospy.loginfo("Done.")
 
-    state = ControllerState()
+    state = PlannerState()
     state.name = sys.argv[1]
     if len(sys.argv) > 2:
         state.type = sys.argv[2]

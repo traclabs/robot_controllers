@@ -39,6 +39,8 @@ include_directories(
 )
 
 add_library(robot_controllers_interface
+  include/robot_controllers_interface/controller.h
+  include/robot_controllers_interface/planner.h
   src/controller_loader.cpp
   src/controller_manager.cpp
   src/planner_loader.cpp
@@ -67,6 +69,9 @@ install(
     scripts/get_controller_state.py
     scripts/start_controller.py
     scripts/stop_controller.py
+    scripts/get_planner_state.py
+    scripts/start_planner.py
+    scripts/stop_planner.py
   DESTINATION
     ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

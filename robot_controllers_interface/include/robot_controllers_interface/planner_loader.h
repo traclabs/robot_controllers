@@ -43,7 +43,7 @@ public:
   PlannerPtr getPlanner();
 
 private:
-  pluginlib::ClassLoader<Planner> plugin_loader_;
+  pluginlib::ClassLoader<robot_planners::Planner> plugin_loader_;
   PlannerPtr planner_;
   bool active_;
 };
