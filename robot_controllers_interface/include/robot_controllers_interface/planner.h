@@ -5,9 +5,16 @@
 
 #include <string>
 #include <vector>
+
 #include <boost/shared_ptr.hpp>
+#include <boost/signals2.hpp>
+#include <boost/bind.hpp>
+
 #include <ros/ros.h>
+
 #include <robot_controllers_interface/handle.h>
+#include <craftsman_msgs/PlanResult.h>
+
 
 /**
  * \mainpage
@@ -115,6 +122,9 @@ public:
 
   /** @brief Get the names of joints/planners which this planner exclusively claims. */
   virtual std::vector<std::string> getClaimedNames() = 0;
+
+  /** @brief plan complete signal to notify planner manager */
+  boost::signals2::signal<void (craftsman_msgs::PlanResult)> planComplete;
 
 
 protected:

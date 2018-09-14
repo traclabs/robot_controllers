@@ -16,6 +16,7 @@ find_package(catkin REQUIRED
     pluginlib
     roscpp
     robot_controllers_msgs
+    craftsman_msgs
 )
 
 catkin_package(
@@ -26,6 +27,7 @@ catkin_package(
     pluginlib
     roscpp
     robot_controllers_msgs
+    craftsman_msgs
   DEPENDS
     Boost
   LIBRARIES
