@@ -70,7 +70,7 @@ int ControllerManager::init(ros::NodeHandle& nh)
   else
   {
     ROS_WARN_NAMED("ControllerManager", "No controllers loaded.");
-    return -1;
+    // return -1;
   }
 
   // Setup actionlib server

@@ -43,7 +43,7 @@ int PlannerManager::init(ros::NodeHandle& nh)
   else
   {
     ROS_WARN_NAMED("PlannerManager", "No planners loaded.");
-    return -1;
+    // return -1;
   }
 
   // Setup actionlib server
