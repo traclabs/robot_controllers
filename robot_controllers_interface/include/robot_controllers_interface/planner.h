@@ -68,9 +68,7 @@ public:
   {
     name_ = nh.getNamespace();
     // remove leading slash
-    if (name_.at(0) == '/')
-      name_.erase(0, 1);
-
+    if (name_.at(0) == '/') name_.erase(0, 1);
     return 0;
   }
 
@@ -126,11 +124,20 @@ public:
   /** @brief plan complete signal to notify planner manager */
   boost::signals2::signal<void (craftsman_msgs::PlanResult)> planComplete;
 
+  /** @brief returns any conditioning metrics (as strings) if available */
+  bool getConditioningMetrics(std::vector<std::string> &metrics) { 
+    metrics = conditioning_metrics_; 
+    return !conditioning_metrics_.empty(); 
+  }
 
 protected:
 
   /** @brief The name of the planner */
   std::string name_;
+
+  /** @brief The list of conditioning metrics */
+  std::vector<std::string> conditioning_metrics_;
+
 
 };
 
