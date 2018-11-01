@@ -1,5 +1,8 @@
-// Author: Stephen Hart
+/********************************************************************************
+Copyright (c) 2018, TRACLabs, Inc.
+All rights reserved.
 
+********************************************************************************/
 #ifndef ROBOT_CONTROLLERS_INTERFACE_PLANNER_H
 #define ROBOT_CONTROLLERS_INTERFACE_PLANNER_H
 
@@ -122,30 +125,26 @@ public:
   virtual std::vector<std::string> getClaimedNames() = 0;
 
   /** @brief plan complete signal to notify planner manager */
-  boost::signals2::signal<void (craftsman_msgs::PlanResult)> planComplete;
+  boost::signals2::signal<void(craftsman_msgs::PlanResult)> planComplete;
 
   /** @brief returns any conditioning metrics (as strings) if available */
-  bool getConditioningMetrics(std::vector<std::string> &metrics) { 
-    metrics = conditioning_metrics_; 
-    return !conditioning_metrics_.empty(); 
+  bool getConditioningMetrics(std::vector<std::string> &metrics)
+  {
+    metrics = conditioning_metrics_;
+    return !conditioning_metrics_.empty();
   }
 
 protected:
-
   /** @brief The name of the planner */
   std::string name_;
 
   /** @brief The list of conditioning metrics */
   std::vector<std::string> conditioning_metrics_;
-
-
 };
 
 // Some typedefs
 typedef boost::shared_ptr<Planner> PlannerPtr;
 
+};  // namespace robot_planners
 
-
-}  // namespace robot_controllers
-
-#endif  // ROBOT_CONTROLLERS_INTERFACE_PLANNER_H
+#endif
