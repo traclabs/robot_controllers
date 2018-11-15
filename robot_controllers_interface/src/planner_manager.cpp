@@ -57,6 +57,7 @@ int PlannerManager::init(ros::NodeHandle& nh)
 
 int PlannerManager::requestStart(const std::string& name)
 {
+  ROS_WARN_STREAM("looking for planner: " << name);
   // Find requested planner
   PlannerLoaderPtr planner;
   for (PlannerList::iterator p = planners_.begin(); p != planners_.end(); p++)
