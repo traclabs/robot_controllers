@@ -41,7 +41,6 @@
 #include <boost/bind.hpp>
 
 #include <robot_controllers_interface/handle.h>
-#include <craftsman_msgs/ControllerUpdate.h>
 
 /**
  * \mainpage
@@ -154,10 +153,6 @@ public:
 
   /** @brief Get the name of the ros message type that this controller computes updates as. */
   virtual std::string getCommandType() = 0;
-
-
-  /** @brief controller complete signal to notify planner manager */
-  // boost::signals2::signal<void(craftsman_msgs::ControllerUpdate)> controllerUpdate;
 
   /** @brief the publisher to send outputs to */
   ros::Publisher cmd_pub_;
