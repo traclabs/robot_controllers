@@ -32,6 +32,7 @@
 #define ROBOT_CONTROLLERS_INTERFACE_CONTROLLER_MANAGER_H
 
 #include <string>
+#include <vector>
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>
 

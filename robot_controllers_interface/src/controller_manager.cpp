@@ -29,6 +29,8 @@
 // Author: Michael Ferguson
 
 #include <sstream>
+#include <string>
+#include <vector>
 #include <robot_controllers_interface/controller_manager.h>
 
 namespace robot_controllers
@@ -84,10 +86,12 @@ int ControllerManager::init(ros::NodeHandle& nh)
 
 int ControllerManager::requestStart(const std::string& name)
 {
+  ROS_WARN_STREAM("looking for controller: " << name);
   // Find requested controller
   ControllerLoaderPtr controller;
   for (ControllerList::iterator c = controllers_.begin(); c != controllers_.end(); c++)
   {
+    ROS_WARN_STREAM("found controller: " << (*c)->getController()->getName());
     if ((*c)->getController()->getName() == name)
     {
       controller = *c;
@@ -205,7 +209,7 @@ void ControllerManager::reset()
 
 bool ControllerManager::addJointHandle(JointHandlePtr& j)
 {
-  // TODO: check for duplicate names?
+  // TODO(Seth): check for duplicate names?
   joints_.push_back(j);
   return true;
 }
@@ -291,7 +295,11 @@ void ControllerManager::execute(const robot_controllers_msgs::QueryControllerSta
           else
           {
             std::stringstream ss;
-            ss << "Controller " << state.name << " is of type " << (*c)->getController()->getType() << " not " << state.type;
+            ss << "Controller "
+               << state.name
+               << " is of type "
+               << (*c)->getController()->getType()
+               << " not " << state.type;
             getState(result);
             server_->setAborted(result, ss.str());
             return;
@@ -306,7 +314,7 @@ void ControllerManager::execute(const robot_controllers_msgs::QueryControllerSta
       // Check if controller exists on parameter server
       ros::NodeHandle nh;
       if (nh.hasParam(state.name))
-      { 
+      {
         // Create controller (in a loader)
         if (!load(static_cast<std::string>(state.name)))
         {

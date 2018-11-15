@@ -33,9 +33,15 @@
 
 #include <string>
 #include <vector>
-#include <boost/shared_ptr.hpp>
+
 #include <ros/ros.h>
+
+#include <boost/shared_ptr.hpp>
+#include <boost/signals2.hpp>
+#include <boost/bind.hpp>
+
 #include <robot_controllers_interface/handle.h>
+#include <craftsman_msgs/ControllerUpdate.h>
 
 /**
  * \mainpage
@@ -142,6 +148,22 @@ public:
 
   /** @brief Get the names of joints/controllers which this controller exclusively claims. */
   virtual std::vector<std::string> getClaimedNames() = 0;
+
+  /** @brief Get the name of the ros message type that this controller accepts as input */
+  virtual std::string getReferenceType() = 0;
+
+  /** @brief Get the name of the ros message type that this controller computes updates as. */
+  virtual std::string getCommandType() = 0;
+
+
+  /** @brief controller complete signal to notify planner manager */
+  // boost::signals2::signal<void(craftsman_msgs::ControllerUpdate)> controllerUpdate;
+
+  /** @brief the publisher to send outputs to */
+  ros::Publisher cmd_pub_;
+
+  /** @brief the subscriber to receive inputs from */
+  ros::Subscriber ref_sub_;
 
 private:
   std::string name_;
