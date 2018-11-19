@@ -96,6 +96,20 @@ public:
     // remove leading slash
     if (name_.at(0) == '/')
       name_.erase(0, 1);
+
+    // generate a unique string name for this controller instance
+    unique_name_ = generateUniqueName();
+
+    ROS_INFO_STREAM("Controller[" << getName() << "] unique name: " << unique_name_);
+    // set up the unique topic names for communicating with the craftsman controller manager
+    cmd_topic_ = "/" + unique_name_ + "/cmd";
+    ref_topic_ = "/" + unique_name_ + "/ref";
+
+    if (!initializeConnections())
+    {
+      ROS_ERROR_STREAM("Controller::init() -- problem initializing connections for instance " << name_);
+    }
+
     return 0;
   }
 
@@ -136,11 +150,21 @@ public:
     return name_;
   }
 
+  /** @brief Get the name of this controller */
+  std::string getUniqueName()
+  {
+    return unique_name_;
+  }
+
   /** @brief Get the type of this controller. */
   virtual std::string getType()
   {
     return "UnknownType";
   }
+
+  /* @brief needs to be called to make sure topics with unique name are setu up */ 
+  virtual bool initializeConnections() = 0;
+
 
   /** @brief Get the names of joints/controllers which this controller commands. */
   virtual std::vector<std::string> getCommandedNames() = 0;
@@ -154,14 +178,44 @@ public:
   /** @brief Get the name of the ros message type that this controller computes updates as. */
   virtual std::string getCommandType() = 0;
 
+  /** @brief Get the name of the reference topic. */
+  std::string getReferenceTopic() { return ref_topic_; }
+
+  /** @brief Get the name of the command input */
+  std::string getCommandTopic() { return cmd_topic_; }
+
+
   /** @brief the publisher to send outputs to */
   ros::Publisher cmd_pub_;
 
   /** @brief the subscriber to receive inputs from */
   ros::Subscriber ref_sub_;
 
+  /** @brief the publisher topic name to send outputs to */
+  std::string cmd_topic_;
+
+  /** @brief the subscriber topic name to receive inputs from */
+  std::string ref_topic_;
+
 private:
   std::string name_;
+  std::string unique_name_;
+
+  std::string generateUniqueName(size_t length = 64)
+  {
+    auto randchar = []() -> char
+    {
+        const char charset[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+        const size_t max_index = (sizeof(charset) - 1);
+        return charset[ rand() % max_index ];
+    };
+    std::string str(length, 0);
+    std::generate_n(str.begin(), length, randchar);
+    return str;
+  }
 };
 
 // Some typedefs
