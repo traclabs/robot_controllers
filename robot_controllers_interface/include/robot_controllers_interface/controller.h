@@ -101,13 +101,24 @@ public:
     unique_name_ = generateUniqueName();
 
     ROS_INFO_STREAM("Controller[" << getName() << "] unique name: " << unique_name_);
+    
     // set up the unique topic names for communicating with the craftsman controller manager
-    cmd_topic_ = "/" + unique_name_ + "/cmd";
-    ref_topic_ = "/" + unique_name_ + "/ref";
+    ref_topic_ = "/" + getUniqueName() + "/ref";
+    cmd_topic_ = "/" + getUniqueName() + "/cmd";
 
     if (!initializeConnections())
     {
       ROS_ERROR_STREAM("Controller::init() -- problem initializing connections for instance " << name_);
+    }
+
+    if(!cmd_pub_)
+    {
+      ROS_ERROR_STREAM("Controller::init() -- please initialize cmd_pub_ to publish command on topic getCommandTopic()");
+    }
+
+    if(!ref_sub_)
+    {
+      ROS_ERROR_STREAM("Controller::init() -- please initialize ref_sub_ to subscribe to data on getReferenceTopic()");
     }
 
     return 0;
