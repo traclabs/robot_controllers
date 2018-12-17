@@ -31,7 +31,7 @@ bool PlannerLoader::init(const std::string& name, PlannerManager* manager)
     }
     return true;
   }
-  ROS_ERROR_STREAM("Unable to load planner " << name.c_str());
+  ROS_ERROR_STREAM("Unable to load planner " << name.c_str() << " of type: " << planner_type);
   return false;
 }
 

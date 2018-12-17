@@ -101,7 +101,7 @@ public:
     unique_name_ = generateUniqueName();
 
     ROS_INFO_STREAM("Controller[" << getName() << "] unique name: " << unique_name_);
-    
+
     // set up the unique topic names for communicating with the craftsman controller manager
     ref_topic_ = "/" + getUniqueName() + "/ref";
     cmd_topic_ = "/" + getUniqueName() + "/cmd";
@@ -111,12 +111,12 @@ public:
       ROS_ERROR_STREAM("Controller::init() -- problem initializing connections for instance " << name_);
     }
 
-    if(!cmd_pub_)
+    if (!cmd_pub_)
     {
-      ROS_ERROR_STREAM("Controller::init() -- please initialize cmd_pub_ to publish command on topic getCommandTopic()");
+      ROS_ERROR_STREAM("Controller::init() -- please initialize cmd_pub_ to publish cmd on topic getCommandTopic()");
     }
 
-    if(!ref_sub_)
+    if (!ref_sub_)
     {
       ROS_ERROR_STREAM("Controller::init() -- please initialize ref_sub_ to subscribe to data on getReferenceTopic()");
     }
@@ -173,9 +173,7 @@ public:
     return "UnknownType";
   }
 
-  /* @brief needs to be called to make sure topics with unique name are setu up */ 
   virtual bool initializeConnections() = 0;
-
 
   /** @brief Get the names of joints/controllers which this controller commands. */
   virtual std::vector<std::string> getCommandedNames() = 0;
