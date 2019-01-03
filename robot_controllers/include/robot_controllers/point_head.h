@@ -128,7 +128,7 @@ private:
   boost::mutex sampler_mutex_;
 
   bool stop_with_action_;  /// should we stop this controller when the
-                           /// action has terminated (or hold position)?
+  /// action has terminated (or hold position)?
 
   /*
    * In certain cases, we want to start a trajectory at our last sample,

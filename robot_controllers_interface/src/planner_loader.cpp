@@ -6,8 +6,8 @@ namespace robot_planners
 {
 
 PlannerLoader::PlannerLoader() :
-    plugin_loader_("robot_controllers", "robot_planners::Planner"),
-    active_(false)
+  plugin_loader_("robot_controllers", "robot_planners::Planner"),
+  active_(false)
 {
 }
 

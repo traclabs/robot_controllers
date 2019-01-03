@@ -13,7 +13,7 @@
  *     * Neither the name of the Fetch Robotics Inc. nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -146,8 +146,8 @@ int ControllerManager::requestStart(const std::string& name)
       {
         // Unable to stop c, cannot start controller
         ROS_ERROR_STREAM_NAMED("ControllerManager", "Unable to stop " <<
-                                                    (*c)->getController()->getName().c_str() <<
-                                                    " when trying to start " << name.c_str());
+                               (*c)->getController()->getName().c_str() <<
+                               " when trying to start " << name.c_str());
         return -1;
       }
     }
@@ -375,7 +375,7 @@ void ControllerManager::execute(const robot_controllers_msgs::QueryControllerSta
 }
 
 void ControllerManager::getState(
-    robot_controllers_msgs::QueryControllerStatesResult& result)
+  robot_controllers_msgs::QueryControllerStatesResult& result)
 {
   result.state.clear();
   for (ControllerList::iterator c = controllers_.begin(); c != controllers_.end(); c++)

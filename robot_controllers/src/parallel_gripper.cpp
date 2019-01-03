@@ -69,21 +69,21 @@ int ParallelGripperController::init(ros::NodeHandle& nh, ControllerManager* mana
     ROS_ERROR_NAMED("ParallelGripperController",
                     "Unable to retreive joint (%s), Namespace: %s/l_gripper_joint",
                     l_name.c_str(), nh.getNamespace().c_str());
-    return -1;  
+    return -1;
   }
-  
+
   if (!right_)
   {
     ROS_ERROR_NAMED("ParallelGripperController",
                     "Unable to retreive joint (%s), Namespace: %s/r_gripper_joint",
                     r_name.c_str(), nh.getNamespace().c_str());
     return -1;
-  } 
+  }
 
   // Start action server
   server_.reset(new server_t(nh, "",
-                boost::bind(&ParallelGripperController::executeCb, this, _1),
-                false));
+                             boost::bind(&ParallelGripperController::executeCb, this, _1),
+                             false));
   server_->start();
 
   // Get Params
@@ -172,8 +172,8 @@ void ParallelGripperController::update(const ros::Time& now, const ros::Duration
   }
   else
   {
-    left_->setPosition(goal_/2.0, 0, effort_);
-    right_->setPosition(goal_/2.0, 0, effort_);
+    left_->setPosition(goal_ / 2.0, 0, effort_);
+    right_->setPosition(goal_ / 2.0, 0, effort_);
   }
 }
 

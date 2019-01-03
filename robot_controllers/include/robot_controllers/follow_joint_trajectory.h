@@ -141,10 +141,10 @@ private:
   boost::mutex sampler_mutex_;
 
   bool stop_with_action_;  /// should we stop this controller when the
-                           /// action has terminated (or hold position)?
+  /// action has terminated (or hold position)?
 
   bool stop_on_path_violation_;  /// should we stop this controller when
-                                 /// a path tolerance has been violated?
+  /// a path tolerance has been violated?
 
   /*
    * In certain cases, we want to start a trajectory at our last sample,
@@ -154,7 +154,7 @@ private:
    */
   TrajectoryPoint last_sample_;
   bool preempted_;  /// action was preempted
-                    /// (has nothing to do with preempt() above).
+  /// (has nothing to do with preempt() above).
   bool has_path_tolerance_;
   TrajectoryPoint path_tolerance_;
 

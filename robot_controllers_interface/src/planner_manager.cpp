@@ -116,8 +116,8 @@ int PlannerManager::requestStart(const std::string& name)
       {
         // Unable to stop c, cannot start planner
         ROS_ERROR_STREAM_NAMED("PlannerManager", "Unable to stop " <<
-                                                    (*p)->getPlanner()->getName().c_str() <<
-                                                    " when trying to start " << name.c_str());
+                               (*p)->getPlanner()->getName().c_str() <<
+                               " when trying to start " << name.c_str());
         return -1;
       }
     }
@@ -281,7 +281,7 @@ void PlannerManager::execute(const robot_controllers_msgs::QueryPlannerStatesGoa
       // Check if planner exists on parameter server
       ros::NodeHandle nh;
       if (nh.hasParam(state.name))
-      { 
+      {
         // Create planner (in a loader)
         if (!load(static_cast<std::string>(state.name)))
         {
@@ -341,7 +341,7 @@ void PlannerManager::execute(const robot_controllers_msgs::QueryPlannerStatesGoa
 }
 
 void PlannerManager::getState(
-    robot_controllers_msgs::QueryPlannerStatesResult& result)
+  robot_controllers_msgs::QueryPlannerStatesResult& result)
 {
   result.state.clear();
   for (PlannerList::iterator p = planners_.begin(); p != planners_.end(); p++)

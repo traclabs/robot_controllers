@@ -125,12 +125,12 @@ bool PID::checkGains()
     i_min_ = tmp;
     pass = false;
   }
-  if ((i_min_==0) && (i_max_==0) && (i_gain_ != 0))
+  if ((i_min_ == 0) && (i_max_ == 0) && (i_gain_ != 0))
   {
     // It is easy to forgot to set a wind-up limit
     ROS_WARN("Integral gain is non-zero, but integral wind-up limit is zero");
   }
-  if ( ((i_min_ != 0) || (i_max_ != 0)) && (i_gain_ == 0) )
+  if (((i_min_ != 0) || (i_max_ != 0)) && (i_gain_ == 0))
   {
     ROS_WARN("Integral gain is zero, but wind-yup limit is zero");
   }
@@ -147,7 +147,7 @@ double PID::update(double error, double dt)
 {
   double error_dot;
   if (dt <= 0.0)
-  {    
+  {
     ROS_ERROR_THROTTLE(1.0, "PID::update : dt value is less than or equal to zero");
     // if dt is zero is not possible to perform division
     // in this case assume error_dot is zero and perform reset of calculation
@@ -155,7 +155,7 @@ double PID::update(double error, double dt)
   }
   else
   {
-    error_dot = (error-error_last_)/dt;
+    error_dot = (error - error_last_) / dt;
   }
   error_last_ = error;
   return update(error, error_dot, dt);
@@ -175,8 +175,8 @@ double PID::update(double error, double error_dot, double dt)
     dt = 0.0;
   }
 
-  double p_term = p_gain_*error;
-  
+  double p_term = p_gain_ * error;
+
   i_term_ += i_gain_ * error * dt;
 
   // apply wind-up limits to i_term

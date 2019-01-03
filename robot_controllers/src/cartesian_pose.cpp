@@ -53,7 +53,7 @@ namespace robot_controllers
 {
 
 CartesianPoseController::CartesianPoseController() :
-    initialized_(false)
+  initialized_(false)
 {
 }
 
@@ -91,7 +91,7 @@ int CartesianPoseController::init(ros::NodeHandle& nh, ControllerManager* manage
   }
 
   // Populate the chain
-  if(!kdl_tree.getChain(root_link_, tip_link, kdl_chain_))
+  if (!kdl_tree.getChain(root_link_, tip_link, kdl_chain_))
   {
     ROS_ERROR("Could not construct chain from URDF");
     return -1;
@@ -105,10 +105,10 @@ int CartesianPoseController::init(ros::NodeHandle& nh, ControllerManager* manage
 
   // Initialize controllers
   robot_controllers::PID pid_controller;
-  if (!pid_controller.init(ros::NodeHandle(nh,"fb_trans"))) return false;
+  if (!pid_controller.init(ros::NodeHandle(nh, "fb_trans"))) return false;
   for (unsigned int i = 0; i < 3; i++)
     pid_.push_back(pid_controller);
-  if (!pid_controller.init(ros::NodeHandle(nh,"fb_rot"))) return false;
+  if (!pid_controller.init(ros::NodeHandle(nh, "fb_rot"))) return false;
   for (unsigned int i = 0; i < 3; i++)
     pid_.push_back(pid_controller);
 
@@ -120,7 +120,7 @@ int CartesianPoseController::init(ros::NodeHandle& nh, ControllerManager* manage
 
   // Subscribe to command
   command_sub_ = nh.subscribe<geometry_msgs::PoseStamped>("command", 1,
-                    boost::bind(&CartesianPoseController::command, this, _1));
+                 boost::bind(&CartesianPoseController::command, this, _1));
   last_command_ = ros::Time(0);
 
   // Feedback of twist
@@ -193,7 +193,7 @@ void CartesianPoseController::update(const ros::Time& now, const ros::Duration& 
   {
     jnt_delta_(i) = 0.0;
     for (unsigned int j = 0; j < 6; ++j)
-      jnt_delta_(i) += (jacobian_(j,i) * twist_error_(j));
+      jnt_delta_(i) += (jacobian_(j, i) * twist_error_(j));
   }
 
   // Actually update joints

@@ -55,13 +55,13 @@ public:
   {
     double limited_linear_velocity, limited_angular_velocity;
     DiffDriveLimiter::limit(&limited_linear_velocity,
-                                &limited_angular_velocity,
-                                desired_linear_velocity,
-                                desired_angular_velocity,
-                                last_linear_velocity,
-                                last_angular_velocity,
-                                safety_scaling,
-                                dt);
+                            &limited_angular_velocity,
+                            desired_linear_velocity,
+                            desired_angular_velocity,
+                            last_linear_velocity,
+                            last_angular_velocity,
+                            safety_scaling,
+                            dt);
     return bp::make_tuple(limited_linear_velocity, limited_angular_velocity);
   }
 
@@ -71,9 +71,9 @@ public:
   {
     double left_velocity, right_velocity;
     DiffDriveLimiter::calcWheelVelocities(&left_velocity,
-                                              &right_velocity,
-                                              linear_velocity,
-                                              angular_velocity);
+                                          &right_velocity,
+                                          linear_velocity,
+                                          angular_velocity);
     return bp::make_tuple(left_velocity, right_velocity);
   }
 };
@@ -81,31 +81,31 @@ public:
 BOOST_PYTHON_MODULE(robot_controllers_python)
 {
   bp::class_<DiffDriveLimiterParams>("DiffDriveLimiterParams")
-    .def_readwrite("max_linear_velocity", &DiffDriveLimiterParams::max_linear_velocity)
-    .def_readwrite("max_linear_acceleration",
-                   &DiffDriveLimiterParams::max_linear_acceleration)
-    .def_readwrite("max_angular_velocity", &DiffDriveLimiterParams::max_angular_velocity)
-    .def_readwrite("max_angular_acceleration",
-                   &DiffDriveLimiterParams::max_angular_acceleration)
-    .def_readwrite("max_wheel_velocity", &DiffDriveLimiterParams::max_wheel_velocity)
-    .def_readwrite("track_width", &DiffDriveLimiterParams::track_width)
-    .def_readwrite("angular_velocity_limits_linear_velocity",
-                   &DiffDriveLimiterParams::angular_velocity_limits_linear_velocity)
-    .def_readwrite("scale_to_wheel_velocity_limits",
-                   &DiffDriveLimiterParams::scale_to_wheel_velocity_limits)
-    ;
+  .def_readwrite("max_linear_velocity", &DiffDriveLimiterParams::max_linear_velocity)
+  .def_readwrite("max_linear_acceleration",
+                 &DiffDriveLimiterParams::max_linear_acceleration)
+  .def_readwrite("max_angular_velocity", &DiffDriveLimiterParams::max_angular_velocity)
+  .def_readwrite("max_angular_acceleration",
+                 &DiffDriveLimiterParams::max_angular_acceleration)
+  .def_readwrite("max_wheel_velocity", &DiffDriveLimiterParams::max_wheel_velocity)
+  .def_readwrite("track_width", &DiffDriveLimiterParams::track_width)
+  .def_readwrite("angular_velocity_limits_linear_velocity",
+                 &DiffDriveLimiterParams::angular_velocity_limits_linear_velocity)
+  .def_readwrite("scale_to_wheel_velocity_limits",
+                 &DiffDriveLimiterParams::scale_to_wheel_velocity_limits)
+  ;
 
   bp::class_<pyDiffDriveLimiter>("DiffDriveLimiter")
-    .def("limit", &pyDiffDriveLimiter::limit)
-    .def("calcWheelVelocities", &pyDiffDriveLimiter::calcWheelVelocities)
-    .add_property("params",
-                  &pyDiffDriveLimiter::getParams,
-                  &pyDiffDriveLimiter::setParams)
-    .def("setParams", &pyDiffDriveLimiter::setParams)
-    .def("getParams", &pyDiffDriveLimiter::getParams)
-    .def("getDefaultParams", &pyDiffDriveLimiter::getDefaultParams)
-    .staticmethod("getDefaultParams")
-    .def("validateParams", &pyDiffDriveLimiter::validateParams)
-    .staticmethod("validateParams")
-    ;
+  .def("limit", &pyDiffDriveLimiter::limit)
+  .def("calcWheelVelocities", &pyDiffDriveLimiter::calcWheelVelocities)
+  .add_property("params",
+                &pyDiffDriveLimiter::getParams,
+                &pyDiffDriveLimiter::setParams)
+  .def("setParams", &pyDiffDriveLimiter::setParams)
+  .def("getParams", &pyDiffDriveLimiter::getParams)
+  .def("getDefaultParams", &pyDiffDriveLimiter::getDefaultParams)
+  .staticmethod("getDefaultParams")
+  .def("validateParams", &pyDiffDriveLimiter::validateParams)
+  .staticmethod("validateParams")
+  ;
 }

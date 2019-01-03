@@ -123,7 +123,7 @@ int CartesianTwistController::init(ros::NodeHandle& nh, ControllerManager* manag
 
   // Subscribe to command
   command_sub_ = nh.subscribe<geometry_msgs::TwistStamped>("command", 1,
-                    boost::bind(&CartesianTwistController::command, this, _1));
+                 boost::bind(&CartesianTwistController::command, this, _1));
   last_command_time_ = ros::Time(0);
 
   initialized_ = true;
@@ -183,7 +183,7 @@ void CartesianTwistController::update(const ros::Time& now, const ros::Duration&
     {
       if (twist_command_frame_ == "end_effector_frame")
       {
-        twist = cart_pose.M*twist_command_;
+        twist = cart_pose.M * twist_command_;
       }
       else
       {
@@ -228,7 +228,7 @@ void CartesianTwistController::update(const ros::Time& now, const ros::Duration&
     ROS_DEBUG_THROTTLE(1.0, "Joint velocity limit reached.");
   }
 
-  // Make sure solver didn't generate any NaNs. 
+  // Make sure solver didn't generate any NaNs.
   for (unsigned ii = 0; ii < num_joints; ++ii)
   {
     if (!std::isfinite(tgt_jnt_vel_(ii)))
@@ -248,7 +248,7 @@ void CartesianTwistController::update(const ros::Time& now, const ros::Duration&
     double vel_delta = std::abs(tgt_jnt_vel_(ii) - last_tgt_jnt_vel_(ii));
     if (vel_delta > vel_delta_limit)
     {
-      scale = std::min(scale, vel_delta_limit/vel_delta);
+      scale = std::min(scale, vel_delta_limit / vel_delta);
     }
   }
 
@@ -263,7 +263,7 @@ void CartesianTwistController::update(const ros::Time& now, const ros::Duration&
   // scale = 0.0  final velocity = previous velocity
   for (unsigned ii = 0; ii < num_joints; ++ii)
   {
-    tgt_jnt_vel_(ii) = (tgt_jnt_vel_(ii) - last_tgt_jnt_vel_(ii))*scale + last_tgt_jnt_vel_(ii);
+    tgt_jnt_vel_(ii) = (tgt_jnt_vel_(ii) - last_tgt_jnt_vel_(ii)) * scale + last_tgt_jnt_vel_(ii);
   }
 
   // Calculate new target position of joint.  Put target position a few timesteps into the future
@@ -285,7 +285,7 @@ void CartesianTwistController::update(const ros::Time& now, const ros::Duration&
       else if (tgt_jnt_pos_(ii) < joints_[ii]->getPositionMin())
       {
         tgt_jnt_pos_(ii) = joints_[ii]->getPositionMin();
-      }  
+      }
     }
   }
 
@@ -320,7 +320,7 @@ void CartesianTwistController::command(const geometry_msgs::TwistStamped::ConstP
   twist(4) = goal->twist.angular.y;
   twist(5) = goal->twist.angular.z;
 
-  for (int ii=0; ii<6; ++ii)
+  for (int ii = 0; ii < 6; ++ii)
   {
     if (!std::isfinite(twist(ii)))
     {

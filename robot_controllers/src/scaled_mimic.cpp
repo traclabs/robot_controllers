@@ -100,7 +100,7 @@ void ScaledMimicController::update(const ros::Time& now, const ros::Duration& dt
   if (!initialized_)
     return;
 
-  joint_to_control_->setPosition(scale_*joint_to_mimic_->getPosition(), 0, 0);
+  joint_to_control_->setPosition(scale_ * joint_to_mimic_->getPosition(), 0, 0);
 }
 
 std::vector<std::string> ScaledMimicController::getCommandedNames()

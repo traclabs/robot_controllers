@@ -13,7 +13,7 @@
  *     * Neither the name of the Fetch Robotics Inc. nor the names of its
  *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -188,10 +188,16 @@ public:
   virtual std::string getCommandType() = 0;
 
   /** @brief Get the name of the reference topic. */
-  std::string getReferenceTopic() { return ref_topic_; }
+  std::string getReferenceTopic()
+  {
+    return ref_topic_;
+  }
 
   /** @brief Get the name of the command input */
-  std::string getCommandTopic() { return cmd_topic_; }
+  std::string getCommandTopic()
+  {
+    return cmd_topic_;
+  }
 
 
   /** @brief the publisher to send outputs to */
@@ -214,12 +220,12 @@ private:
   {
     auto randchar = []() -> char
     {
-        const char charset[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
-        const size_t max_index = (sizeof(charset) - 1);
-        return charset[ rand() % max_index ];
+      const char charset[] =
+      "0123456789"
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyz";
+      const size_t max_index = (sizeof(charset) - 1);
+      return charset[ rand() % max_index ];
     };
     std::string str(length, 0);
     std::generate_n(str.begin(), length, randchar);

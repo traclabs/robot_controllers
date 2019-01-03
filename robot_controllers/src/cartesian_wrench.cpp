@@ -51,7 +51,7 @@ namespace robot_controllers
 {
 
 CartesianWrenchController::CartesianWrenchController() :
-    initialized_(false)
+  initialized_(false)
 {
 }
 
@@ -89,7 +89,7 @@ int CartesianWrenchController::init(ros::NodeHandle& nh, ControllerManager* mana
   }
 
   // Populate the chain
-  if(!kdl_tree.getChain(root_link_, tip_link, kdl_chain_))
+  if (!kdl_tree.getChain(root_link_, tip_link, kdl_chain_))
   {
     ROS_ERROR("Could not construct chain from URDF");
     return -1;
@@ -108,7 +108,7 @@ int CartesianWrenchController::init(ros::NodeHandle& nh, ControllerManager* mana
 
   // Subscribe to command
   command_sub_ = nh.subscribe<geometry_msgs::Wrench>("command", 1,
-                    boost::bind(&CartesianWrenchController::command, this, _1));
+                 boost::bind(&CartesianWrenchController::command, this, _1));
   last_command_ = ros::Time(0);
 
   initialized_ = true;
@@ -156,7 +156,7 @@ void CartesianWrenchController::update(const ros::Time& now, const ros::Duration
     // Command has timed out, shutdown
     manager_->requestStop(getName());
     return;
-  } 
+  }
 
   // This updates jnt_pos_
   updateJoints();
@@ -169,7 +169,7 @@ void CartesianWrenchController::update(const ros::Time& now, const ros::Duration
   {
     jnt_eff_(i) = 0;
     for (unsigned int j = 0; j < 6; ++j)
-      jnt_eff_(i) += (jacobian_(j,i) * desired_wrench_(j));
+      jnt_eff_(i) += (jacobian_(j, i) * desired_wrench_(j));
   }
 
   // Actually update joints

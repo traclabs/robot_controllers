@@ -45,8 +45,8 @@ namespace robot_controllers
 {
 
 DiffDriveBaseController::DiffDriveBaseController() :
-    initialized_(false),
-    safety_scaling_(1.0)
+  initialized_(false),
+  safety_scaling_(1.0)
 {
   theta_ = 0.0;
 
@@ -120,7 +120,7 @@ int DiffDriveBaseController::init(ros::NodeHandle& nh, ControllerManager* manage
 
   // Subscribe to base commands
   cmd_sub_ = nh.subscribe<geometry_msgs::Twist>("command", 1,
-                boost::bind(&DiffDriveBaseController::command, this, _1));
+             boost::bind(&DiffDriveBaseController::command, this, _1));
 
   // Publish odometry & tf
   ros::NodeHandle n;
@@ -131,7 +131,7 @@ int DiffDriveBaseController::init(ros::NodeHandle& nh, ControllerManager* manage
   // Publish timer
   double publish_frequency;
   nh.param<double>("publish_frequency", publish_frequency, 100.0);
-  odom_timer_ = n.createTimer(ros::Duration(1/publish_frequency),
+  odom_timer_ = n.createTimer(ros::Duration(1 / publish_frequency),
                               &DiffDriveBaseController::publishCallback,
                               this);
 
@@ -141,7 +141,7 @@ int DiffDriveBaseController::init(ros::NodeHandle& nh, ControllerManager* manage
   if (safety_scaling_distance_ > 0.0)
   {
     scan_sub_ = n.subscribe<sensor_msgs::LaserScan>("base_scan", 1,
-                  boost::bind(&DiffDriveBaseController::scanCallback, this, _1));
+                boost::bind(&DiffDriveBaseController::scanCallback, this, _1));
   }
 
   initialized_ = true;
@@ -243,7 +243,7 @@ void DiffDriveBaseController::update(const ros::Time& now, const ros::Duration& 
     // Compute how much we actually scaled the linear velocity
     double actual_scaling = 1.0;
     if (desired_x_ != 0.0)
-      actual_scaling = x/desired_x_;
+      actual_scaling = x / desired_x_;
     // Limit angular velocity
     // Scale same amount as linear velocity so that robot still follows the same "curvature"
     r = std::max(-max_velocity_r_, std::min(actual_scaling * desired_r_, max_velocity_r_));
@@ -278,10 +278,10 @@ void DiffDriveBaseController::update(const ros::Time& now, const ros::Duration& 
 
   double left_pos = left_->getPosition();
   double right_pos = right_->getPosition();
-  double left_dx = angles::shortest_angular_distance(left_last_position_, left_pos)/radians_per_meter_;
-  double right_dx = angles::shortest_angular_distance(right_last_position_, right_pos)/radians_per_meter_;
-  double left_vel = static_cast<double>(left_->getVelocity())/radians_per_meter_;
-  double right_vel = static_cast<double>(right_->getVelocity())/radians_per_meter_;
+  double left_dx = angles::shortest_angular_distance(left_last_position_, left_pos) / radians_per_meter_;
+  double right_dx = angles::shortest_angular_distance(right_last_position_, right_pos) / radians_per_meter_;
+  double left_vel = static_cast<double>(left_->getVelocity()) / radians_per_meter_;
+  double right_vel = static_cast<double>(right_->getVelocity()) / radians_per_meter_;
 
   // Threshold the odometry to avoid noise (especially in simulation)
   if (fabs(left_dx) > wheel_rotating_threshold_ ||
@@ -301,12 +301,12 @@ void DiffDriveBaseController::update(const ros::Time& now, const ros::Duration& 
   }
 
   // Calculate forward and angular differences
-  double d = (left_dx+right_dx)/2.0;
-  double th = (right_dx-left_dx)/track_width_;
+  double d = (left_dx + right_dx) / 2.0;
+  double th = (right_dx - left_dx) / track_width_;
 
   // Calculate forward and angular velocities
-  dx = (left_vel + right_vel)/2.0;
-  dr = (right_vel - left_vel)/track_width_;
+  dx = (left_vel + right_vel) / 2.0;
+  dr = (right_vel - left_vel) / track_width_;
 
   // Actually set command
   if (fabs(dx) > moving_threshold_ ||
@@ -314,20 +314,20 @@ void DiffDriveBaseController::update(const ros::Time& now, const ros::Duration& 
       last_sent_x_ != 0.0 ||
       last_sent_r_ != 0.0)
   {
-    setCommand(last_sent_x_ - (last_sent_r_/2.0 * track_width_),
-               last_sent_x_ + (last_sent_r_/2.0 * track_width_));
+    setCommand(last_sent_x_ - (last_sent_r_ / 2.0 * track_width_),
+               last_sent_x_ + (last_sent_r_ / 2.0 * track_width_));
   }
 
   // Lock mutex before updating
   boost::mutex::scoped_lock lock(odom_mutex_);
 
   // Update stored odometry pose...
-  theta_ += th/2.0;
-  odom_.pose.pose.position.x += d*cos(theta_);
-  odom_.pose.pose.position.y += d*sin(theta_);
-  theta_ += th/2.0;
-  odom_.pose.pose.orientation.z = sin(theta_/2.0);
-  odom_.pose.pose.orientation.w = cos(theta_/2.0);
+  theta_ += th / 2.0;
+  odom_.pose.pose.position.x += d * cos(theta_);
+  odom_.pose.pose.position.y += d * sin(theta_);
+  theta_ += th / 2.0;
+  odom_.pose.pose.orientation.z = sin(theta_ / 2.0);
+  odom_.pose.pose.orientation.w = cos(theta_ / 2.0);
   // ...and twist
   odom_.twist.twist.linear.x = dx;
   odom_.twist.twist.angular.z = dr;
@@ -371,7 +371,7 @@ void DiffDriveBaseController::publishCallback(const ros::TimerEvent& event)
     transform.setRotation(tf::Quaternion(msg.pose.pose.orientation.x,
                                          msg.pose.pose.orientation.y,
                                          msg.pose.pose.orientation.z,
-                                         msg.pose.pose.orientation.w) );
+                                         msg.pose.pose.orientation.w));
     /*
      * REP105 (http://ros.org/reps/rep-0105.html)
      *   says: map -> odom -> base_link
@@ -398,7 +398,7 @@ void DiffDriveBaseController::scanCallback(
 
       // Check if point is inside the width of the robot
       double py = sin(angle) * scan->ranges[i];
-      if (fabs(py) < (robot_width_/2.0))
+      if (fabs(py) < (robot_width_ / 2.0))
         min_dist = scan->ranges[i];
     }
   }

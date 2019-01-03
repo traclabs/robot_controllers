@@ -75,7 +75,7 @@ int PointHeadController::init(ros::NodeHandle& nh, ControllerManager* manager)
   if (!model.initParam("robot_description"))
   {
     ROS_ERROR_NAMED("PointHeadController",
-      "Failed to parse URDF, is robot_description parameter set?");
+                    "Failed to parse URDF, is robot_description parameter set?");
     return -1;
   }
 
@@ -102,8 +102,8 @@ int PointHeadController::init(ros::NodeHandle& nh, ControllerManager* manager)
 
   // Start action server
   server_.reset(new head_server_t(nh, "",
-                boost::bind(&PointHeadController::executeCb, this, _1),
-                false));
+                                  boost::bind(&PointHeadController::executeCb, this, _1),
+                                  false));
   server_->start();
 
   initialized_ = true;
@@ -204,7 +204,7 @@ void PointHeadController::executeCb(const control_msgs::PointHeadGoalConstPtr& g
     head_pan_goal_ = atan2(target_in_pan.point.y, target_in_pan.point.x);
     head_tilt_goal_ = -atan2(target_in_tilt.point.z, sqrt(pow(target_in_tilt.point.x, 2) + pow(target_in_tilt.point.y, 2)));
   }
-  catch(const tf::TransformException &ex)
+  catch (const tf::TransformException &ex)
   {
     server_->setAborted(result_, "Could not transform goal.");
     ROS_WARN_NAMED("PointHeadController", "Could not transform goal.");
@@ -277,7 +277,7 @@ void PointHeadController::executeCb(const control_msgs::PointHeadGoalConstPtr& g
     }
 
     // No feedback needed for PointHeadAction
-    ros::Duration(1/50.0).sleep();
+    ros::Duration(1 / 50.0).sleep();
   }
 
   // Stop this controller if desired (and not preempted)

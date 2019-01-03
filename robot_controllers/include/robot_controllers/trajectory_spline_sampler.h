@@ -62,9 +62,9 @@ enum SplineType
 static inline void generatePowers(int n, double x, double* powers)
 {
   powers[0] = 1.0;
-  for (int i=1; i<=n; i++)
+  for (int i = 1; i <= n; i++)
   {
-    powers[i] = powers[i-1]*x;
+    powers[i] = powers[i - 1] * x;
   }
 }
 
@@ -87,7 +87,7 @@ static void QuinticSpline(double p0, double v0, double a0,
   {
     s.coef[0] = p1;
     s.coef[1] = v1;
-    s.coef[2] = 0.5*a1;
+    s.coef[2] = 0.5 * a1;
     s.coef[3] = 0.0;
     s.coef[4] = 0.0;
     s.coef[5] = 0.0;
@@ -99,13 +99,13 @@ static void QuinticSpline(double p0, double v0, double a0,
 
     s.coef[0] = p0;
     s.coef[1] = v0;
-    s.coef[2] = 0.5*a0;
-    s.coef[3] = (-20.0*p0 + 20.0*p1 - 3.0*a0*T[2] + a1*T[2] -
-                 12.0*v0*T[1] - 8.0*v1*T[1]) / (2.0*T[3]);
-    s.coef[4] = (30.0*p0 - 30.0*p1 + 3.0*a0*T[2] - 2.0*a1*T[2] +
-                 16.0*v0*T[1] + 14.0*v1*T[1]) / (2.0*T[4]);
-    s.coef[5] = (-12.0*p0 + 12.0*p1 - a0*T[2] + a1*T[2] -
-                 6.0*v0*T[1] - 6.0*v1*T[1]) / (2.0*T[5]);
+    s.coef[2] = 0.5 * a0;
+    s.coef[3] = (-20.0 * p0 + 20.0 * p1 - 3.0 * a0 * T[2] + a1 * T[2] -
+                 12.0 * v0 * T[1] - 8.0 * v1 * T[1]) / (2.0 * T[3]);
+    s.coef[4] = (30.0 * p0 - 30.0 * p1 + 3.0 * a0 * T[2] - 2.0 * a1 * T[2] +
+                 16.0 * v0 * T[1] + 14.0 * v1 * T[1]) / (2.0 * T[4]);
+    s.coef[5] = (-12.0 * p0 + 12.0 * p1 - a0 * T[2] + a1 * T[2] -
+                 6.0 * v0 * T[1] - 6.0 * v1 * T[1]) / (2.0 * T[5]);
   }
 }
 
@@ -118,23 +118,23 @@ static void sampleQuinticSpline(Spline& s, double t,
   double T[6];
   generatePowers(5, t, T);
 
-  position = T[0]*s.coef[0] +
-             T[1]*s.coef[1] +
-             T[2]*s.coef[2] +
-             T[3]*s.coef[3] +
-             T[4]*s.coef[4] +
-             T[5]*s.coef[5];
+  position = T[0] * s.coef[0] +
+             T[1] * s.coef[1] +
+             T[2] * s.coef[2] +
+             T[3] * s.coef[3] +
+             T[4] * s.coef[4] +
+             T[5] * s.coef[5];
 
-  velocity = T[0]*s.coef[1] +
-         2.0*T[1]*s.coef[2] +
-         3.0*T[2]*s.coef[3] +
-         4.0*T[3]*s.coef[4] +
-         5.0*T[4]*s.coef[5];
+  velocity = T[0] * s.coef[1] +
+             2.0 * T[1] * s.coef[2] +
+             3.0 * T[2] * s.coef[3] +
+             4.0 * T[3] * s.coef[4] +
+             5.0 * T[4] * s.coef[5];
 
-  acceleration = 2.0*T[0]*s.coef[2] +
-                 6.0*T[1]*s.coef[3] +
-                12.0*T[2]*s.coef[4] +
-                20.0*T[3]*s.coef[5];
+  acceleration = 2.0 * T[0] * s.coef[2] +
+                 6.0 * T[1] * s.coef[3] +
+                 12.0 * T[2] * s.coef[4] +
+                 20.0 * T[3] * s.coef[5];
 }
 
 /**
@@ -162,8 +162,8 @@ static void CubicSpline(double p0, double v0, double p1, double v1, double t, Sp
 
     s.coef[0] = p0;
     s.coef[1] = v0;
-    s.coef[2] = (3.0 * p1 - 3.0 * p0 - 2.0 *v0*T[1] - v1*T[1]) / T[2];
-    s.coef[3] = (-2.0 * p1 + 2.0 * p0 + v0*T[1] + v1*T[1]) / T[3];
+    s.coef[2] = (3.0 * p1 - 3.0 * p0 - 2.0 * v0 * T[1] - v1 * T[1]) / T[2];
+    s.coef[3] = (-2.0 * p1 + 2.0 * p0 + v0 * T[1] + v1 * T[1]) / T[3];
   }
 }
 
@@ -175,14 +175,14 @@ static void sampleCubicSpline(Spline s, double t, double& position, double& velo
   double T[4];
   generatePowers(3, t, T);
 
-  position = T[0]*s.coef[0] +
-             T[1]*s.coef[1] +
-             T[2]*s.coef[2] +
-             T[3]*s.coef[3];
+  position = T[0] * s.coef[0] +
+             T[1] * s.coef[1] +
+             T[2] * s.coef[2] +
+             T[3] * s.coef[3];
 
-  velocity = T[0]*s.coef[1] +
-         2.0*T[1]*s.coef[2] +
-         3.0*T[2]*s.coef[3];
+  velocity = T[0] * s.coef[1] +
+             2.0 * T[1] * s.coef[2] +
+             3.0 * T[2] * s.coef[3];
 }
 
 static void LinearSpline(double p0, double p1, double t, Spline& s)
@@ -194,7 +194,7 @@ static void LinearSpline(double p0, double p1, double t, Spline& s)
 
 static void sampleLinearSpline(Spline& s, double t, double& position)
 {
-  position = s.coef[0] + (s.coef[1] * t/s.coef[2]);
+  position = s.coef[0] + (s.coef[1] * t / s.coef[2]);
 }
 
 /**
@@ -245,14 +245,14 @@ public:
     else
     {
       // We put a segment in between each pair of points
-      segments_.resize(trajectory.size()-1);
+      segments_.resize(trajectory.size() - 1);
 
       // Setup up the segments
       for (size_t p = 0; p < segments_.size(); ++p)
       {
         // This segment is from p to p+1
         segments_[p].start_time = trajectory.points[p].time;
-        segments_[p].end_time = trajectory.points[p+1].time;
+        segments_[p].end_time = trajectory.points[p + 1].time;
 
         // Set up spline
         segments_[p].splines.resize(num_joints);
@@ -268,9 +268,9 @@ public:
             QuinticSpline(trajectory.points[p].q[j],
                           trajectory.points[p].qd[j],
                           trajectory.points[p].qdd[j],
-                          trajectory.points[p+1].q[j],
-                          trajectory.points[p+1].qd[j],
-                          trajectory.points[p+1].qdd[j],
+                          trajectory.points[p + 1].q[j],
+                          trajectory.points[p + 1].qd[j],
+                          trajectory.points[p + 1].qdd[j],
                           segments_[p].end_time - segments_[p].start_time,
                           segments_[p].splines[j]);
           }
@@ -286,8 +286,8 @@ public:
           {
             CubicSpline(trajectory.points[p].q[j],
                         trajectory.points[p].qd[j],
-                        trajectory.points[p+1].q[j],
-                        trajectory.points[p+1].qd[j],
+                        trajectory.points[p + 1].q[j],
+                        trajectory.points[p + 1].qd[j],
                         segments_[p].end_time - segments_[p].start_time,
                         segments_[p].splines[j]);
           }
@@ -296,12 +296,12 @@ public:
         else
         {
           result.q.resize(num_joints);
- 
+
           // Lame -- only positions do linear
           for (size_t j = 0; j < num_joints; ++j)
           {
             LinearSpline(trajectory.points[p].q[j],
-                         trajectory.points[p+1].q[j],
+                         trajectory.points[p + 1].q[j],
                          segments_[p].end_time - segments_[p].start_time,
                          segments_[p].splines[j]);
           }
@@ -338,7 +338,7 @@ public:
         sampleQuinticSpline(segments_[seg_].splines[i], time - segments_[seg_].start_time,
                             result.q[i], result.qd[i], result.qdd[i]);
       }
-      else if(segments_[seg_].type == CUBIC)
+      else if (segments_[seg_].type == CUBIC)
       {
         sampleCubicSpline(segments_[seg_].splines[i], time - segments_[seg_].start_time,
                           result.q[i], result.qd[i]);
@@ -357,7 +357,7 @@ public:
   /** @brief Get the end time of our trajectory */
   virtual double end_time()
   {
-    return segments_[segments_.size()-1].end_time;
+    return segments_[segments_.size() - 1].end_time;
   }
 
   /** @brief Get the trajectory that we are sampling from. */

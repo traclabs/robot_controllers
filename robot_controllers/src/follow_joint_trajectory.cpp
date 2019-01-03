@@ -46,7 +46,7 @@ namespace robot_controllers
 {
 
 FollowJointTrajectoryController::FollowJointTrajectoryController() :
-    initialized_(false)
+  initialized_(false)
 {
 }
 
@@ -121,7 +121,7 @@ int FollowJointTrajectoryController::init(ros::NodeHandle& nh, ControllerManager
   path_tolerance_.qdd.resize(joints_.size());
   goal_tolerance_.q.resize(joints_.size());
   goal_tolerance_.qd.resize(joints_.size());
-  goal_tolerance_.qdd.resize(joints_.size()); 
+  goal_tolerance_.qdd.resize(joints_.size());
 
   // Setup ROS interfaces
   server_.reset(new server_t(nh, "",
@@ -234,7 +234,7 @@ void FollowJointTrajectoryController::update(const ros::Time& now, const ros::Du
       for (size_t j = 0; j < joints_.size(); ++j)
       {
         feedback_.error.positions[j] = shortest_angular_distance(feedback_.desired.positions[j],
-                                                                 feedback_.actual.positions[j]);
+                                       feedback_.actual.positions[j]);
         feedback_.error.velocities[j] = feedback_.actual.velocities[j] -
                                         feedback_.desired.velocities[j];
       }
@@ -433,9 +433,9 @@ void FollowJointTrajectoryController::executeCb(const control_msgs::FollowJointT
     {
       // A single point, with nothing in the queue!
       executable_trajectory.points.push_back(
-          getPointFromCurrent(new_trajectory.points[0].qd.size() > 0,
-                              new_trajectory.points[0].qdd.size() > 0,
-                              true));
+        getPointFromCurrent(new_trajectory.points[0].qd.size() > 0,
+                            new_trajectory.points[0].qdd.size() > 0,
+                            true));
       executable_trajectory.points.push_back(new_trajectory.points[0]);
     }
   }
@@ -548,7 +548,7 @@ void FollowJointTrajectoryController::executeCb(const control_msgs::FollowJointT
     // Publish feedback
     feedback_.header.stamp = ros::Time::now();
     server_->publishFeedback(feedback_);
-    ros::Duration(1/50.0).sleep();
+    ros::Duration(1 / 50.0).sleep();
   }
 
   {

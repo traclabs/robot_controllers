@@ -34,8 +34,8 @@ namespace robot_controllers
 {
 
 ControllerLoader::ControllerLoader() :
-    plugin_loader_("robot_controllers", "robot_controllers::Controller"),
-    active_(false)
+  plugin_loader_("robot_controllers", "robot_controllers::Controller"),
+  active_(false)
 {
 }
 

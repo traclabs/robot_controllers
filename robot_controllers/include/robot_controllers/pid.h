@@ -69,8 +69,8 @@ public:
    *  @param error error term (goal-actual)
    *  @param dt timestep used for calculating derivative term and integral windup
    *  @returns calculated PID command
-   * 
-   *  PID derivate term is calculated from change in error value and dt   
+   *
+   *  PID derivate term is calculated from change in error value and dt
    */
   double update(double error, double dt);
 
@@ -80,7 +80,7 @@ public:
    *  @param error_dot value that is used for derivative term calculation
    *  @param dt timestep used for integral windup
    *  @returns calculated PID command
-   */  
+   */
   double update(double error, double error_dot, double dt);
 
 protected:
@@ -101,7 +101,7 @@ protected:
   double i_max_, i_min_;
 
   /// integral wind-up term
-  double i_term_; 
+  double i_term_;
 
   /// Last error value, used for calculating error_dot when not provided
   double error_last_;
