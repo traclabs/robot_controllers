@@ -47,6 +47,7 @@ add_library(robot_controllers_interface
   src/controller_manager.cpp
   src/planner_loader.cpp
   src/planner_manager.cpp
+  src/parameter_parser.cpp
 )
 target_link_libraries(robot_controllers_interface
   ${Boost_LIBRARIES}

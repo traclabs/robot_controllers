@@ -16,8 +16,9 @@ All rights reserved.
 #include <ros/ros.h>
 
 #include <robot_controllers_interface/handle.h>
-#include <craftsman_msgs/PlanResult.h>
+#include <robot_controllers_interface/parameter_parser.h>
 
+#include <craftsman_msgs/PlanResult.h>
 
 /**
  * \mainpage

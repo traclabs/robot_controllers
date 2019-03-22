@@ -41,6 +41,7 @@
 #include <boost/bind.hpp>
 
 #include <robot_controllers_interface/handle.h>
+#include <robot_controllers_interface/parameter_parser.h>
 
 /**
  * \mainpage
@@ -119,6 +120,12 @@ public:
     if (!ref_sub_)
     {
       ROS_ERROR_STREAM("Controller::init() -- please initialize ref_sub_ to subscribe to data on getReferenceTopic()");
+    }
+
+    parser_ = std::make_shared<robot_controllers::ParameterParser>(nh, "controller");
+    if (!parser_->parseParams("robot_controllers", "craftsman_controllers.yaml"))
+    {
+      ROS_ERROR_STREAM("Controller::init() -- could not parse parameters from file");
     }
 
     return 0;
@@ -215,6 +222,8 @@ public:
 private:
   std::string name_;
   std::string unique_name_;
+
+  std::shared_ptr<robot_controllers::ParameterParser> parser_;
 
   std::string generateUniqueName(size_t length = 64)
   {

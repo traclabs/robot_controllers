@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <ros/ros.h>
+#include <ros/package.h>
 
 #include <iostream>
 #include <fstream>
@@ -20,7 +21,10 @@ namespace robot_controllers
 {
 class ParameterParser
 {
+  void findFilesInDir(std::string path, std::vector<std::string>& files_found);
+
   ros::NodeHandle nh_;
+  std::string filename_;
   std::string pkg_path_;
   std::string file_path_;
   std::string parsing_type_;
