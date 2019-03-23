@@ -123,10 +123,22 @@ public:
     }
 
     parser_ = std::make_shared<robot_controllers::ParameterParser>(nh, "controller");
-    if (!parser_->parseParams("robot_controllers", "craftsman_controllers.yaml"))
+    // if (!parser_->parseFileParams("robot_controllers", "craftsman_controllers.yaml"))
+    // {
+    //   ROS_ERROR_STREAM("Controller::init() -- could not parse parameters from file");
+    // }
+    if (!parser_->parseYamlParams("/controllers_test/cartesian"))
     {
-      ROS_ERROR_STREAM("Controller::init() -- could not parse parameters from file");
+      ROS_ERROR_STREAM("Controller::init() -- could not parse cartesian parameters from the param server");
     }
+    // if (!parser_->parseYamlParams("/controllers_test/joint_trajectory"))
+    // {
+    //   ROS_ERROR_STREAM("Controller::init() -- could not parse joint_trajectory parameters from the param server");
+    // }
+    // if (!parser_->parseYamlParams("/controllers_test/path"))
+    // {
+    //   ROS_ERROR_STREAM("Controller::init() -- could not parse path parameters from the param server");
+    // }
 
     return 0;
   }
@@ -205,7 +217,6 @@ public:
   {
     return cmd_topic_;
   }
-
 
   /** @brief the publisher to send outputs to */
   ros::Publisher cmd_pub_;

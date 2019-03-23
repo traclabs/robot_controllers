@@ -16,12 +16,15 @@
 #include <boost/filesystem.hpp>
 // #include <boost/algorithm/string.hpp>
 
+typedef std::map<std::string, std::string> ParamGroup;
 
 namespace robot_controllers
 {
 class ParameterParser
 {
   void findFilesInDir(std::string path, std::vector<std::string>& files_found);
+  void expandParamStruct(XmlRpc::XmlRpcValue& val, std::string& param_name);
+  void expandParamArray(XmlRpc::XmlRpcValue& val, std::string& param_name);
 
   ros::NodeHandle nh_;
   std::string filename_;
@@ -29,11 +32,20 @@ class ParameterParser
   std::string file_path_;
   std::string parsing_type_;
 
+  std::map<std::string, std::vector<std::string> > top_level_type_names_;
+  std::map<std::string, std::vector<ParamGroup> > type_name_params_;
+
+  std::map<std::string, std::string> dynamic_strings_;
+  std::map<std::string, double> dynamic_doubles_;
+  std::map<std::string, int> dynamic_ints_;
+  std::map<std::string, bool> dynamic_bools_;
+
 public:
   ParameterParser(const ros::NodeHandle _nh, const std::string _type);
   ~ParameterParser();
 
-  bool parseParams(const std::string rospkg, const std::string file);
+  bool parseYamlParams(const std::string param_base);
+  bool parseFileParams(const std::string rospkg, const std::string file);
 };
 }
 
