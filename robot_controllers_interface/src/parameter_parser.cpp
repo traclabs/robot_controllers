@@ -2,8 +2,9 @@
 
 using namespace robot_controllers;
 
-ParameterParser::ParameterParser(const ros::NodeHandle _nh, const std::string _type) :
+ParameterParser::ParameterParser(const ros::NodeHandle _nh, const std::string _name, const std::string _type) :
   nh_(_nh),
+  controller_name_(_name),
   parsing_type_(_type)
 {
   ROS_INFO_STREAM("ParameterParser() -- creating parser for: " << parsing_type_);
@@ -23,69 +24,109 @@ bool ParameterParser::parseYamlParams(const std::string param_base)
   XmlRpc::XmlRpcValue base_param;
   if (nh_.getParamCached(param_base, base_param))
   {
-    if (base_param.valid())
+    if (!base_param.valid())
     {
-      std::cout<<std::endl;
-      std::cout<<std::endl;
+      ROS_ERROR_STREAM("not valid!");
+      return false;
+    }
 
-      std::string param_name = param_base;
+    std::cout<<std::endl;
+    std::cout<<std::endl;
 
-      // todo - put assert in here?
-      //   we are assuming that the yaml is going to be an array to start
-      //
-      if (base_param.getType() == XmlRpc::XmlRpcValue::TypeArray)
+    std::string param_name = "/" + controller_name_;
+
+    // todo - put assert in here?
+    //   we are assuming that the yaml is going to be an array to start
+    //
+    if (base_param.getType() == XmlRpc::XmlRpcValue::TypeArray)
+    {
+      for (auto i = 0; i < base_param.size(); ++i)
       {
-        for (auto i = 0; i < base_param.size(); ++i)
+        ROS_INFO_STREAM("toplevel param name: "<<param_name);
+
+        if (base_param[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
         {
-          ROS_INFO_STREAM("toplevel param name: "<<param_name);
-
-          if (base_param[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
+          // ROS_INFO_STREAM("top level STRUCT");
+          
+          // parse first struct
+          for (auto v : base_param[i])
           {
-            // ROS_INFO_STREAM("top level STRUCT");
-            
-            // parse first struct
-            for (auto v : base_param[i])
+            std::string val_str = static_cast<std::string>(v.first);
+            std::string expanded_param_name = param_name + "/" + val_str;
+            // ROS_INFO_STREAM("  midlevel param name: "<<expanded_param_name);
+
+            // if (v.second.getType() == XmlRpc::XmlRpcValue::TypeArray)
+            // {
+            //   ROS_INFO_STREAM("  midlevel will expand array");
+            //   expandParamArray(v.second, expanded_param_name);
+            // }
+            // else 
+            if (val_str == "params"
+                && v.second.getType() == XmlRpc::XmlRpcValue::TypeStruct)
             {
-              std::string val_str = static_cast<std::string>(v.first);
-              std::string expanded_param_name = param_name + "/" + val_str;
-              ROS_INFO_STREAM("  midlevel param name: "<<expanded_param_name);
+              // ROS_INFO_STREAM("  midlevel will expand struct");
 
-              if (v.second.getType() == XmlRpc::XmlRpcValue::TypeArray)
-              {
-                expandParamArray(v.second, expanded_param_name);
-              }
-              else if (v.second.getType() == XmlRpc::XmlRpcValue::TypeStruct)
-              {
-                expandParamStruct(v.second, expanded_param_name);
-              }
-              else
-              {
-                ROS_WARN_STREAM("  mid level SOMETHING ELSE");
-              }
+              // std::string name = "";
+              // for (auto tmp : v.second)
+              // {
+              //   std::string tmp_str = static_cast<std::string>(tmp.first);
+              //   ROS_ERROR_STREAM("have param: "<<tmp_str);
+              //   if (tmp_str == "name")
+              //   {
+              //     name = static_cast<std::string>(tmp.second);
+              //     ROS_ERROR_STREAM("found our name! >> "<<name);
+              //   }
+              // }
+
+              // if (name.empty())
+              // {
+              //   ROS_ERROR_STREAM("no name given for param");
+              //   continue;
+              // }
+
+              // expanded_param_name = expanded_param_name + "/" + name;
+
+              expandParamStruct(v.second, expanded_param_name);
             }
-          }
-          else if (base_param[i].getType() == XmlRpc::XmlRpcValue::TypeArray)
-          {
-            ROS_WARN_STREAM("top level ARRAY");
-          }
-          else if (base_param[i].getType() == XmlRpc::XmlRpcValue::TypeString)
-          {
-            ROS_INFO_STREAM("top level STRING");
-            std::string val_str = static_cast<std::string>(base_param[i]);
-            top_level_type_names_[param_name].push_back(val_str);
-          }
-          else
-          {
-            ROS_WARN_STREAM("top level SOMETHING ELSE -- "<<base_param[i].getType());
+            // else if (v.second.getType() == XmlRpc::XmlRpcValue::TypeString)
+            // {
+            //   std::string str = static_cast<std::string>(v.second);
+            //   // ROS_INFO_STREAM("  midlevel["<<val_str<<"] is string: "<<str);
+            // }
+            // else
+            // {
+            //   // ROS_WARN_STREAM("  midlevel SOMETHING ELSE");
+            // }
           }
         }
-      }
-      else
-      {
-        ROS_ERROR_STREAM("ParameterParser::parseYamlParams() -- invalid yaml; top level item: "
-                         << param_name << " should be array");
+        else
+        {
+          ROS_ERROR_STREAM("ParameterParser::parseYamlParams() -- invalid yaml " << param_name << " should be struct");
+          return false;
+        }
+        // else if (base_param[i].getType() == XmlRpc::XmlRpcValue::TypeArray)
+        // {
+        //   ROS_WARN_STREAM("top level ARRAY");
+        // }
+        // else if (base_param[i].getType() == XmlRpc::XmlRpcValue::TypeString)
+        // {
+        //   ROS_INFO_STREAM("top level STRING");
+        //   std::string val_str = static_cast<std::string>(base_param[i]);
+        //   top_level_type_names_[param_name].push_back(val_str);
+        // }
+        // else
+        // {
+        //   ROS_WARN_STREAM("top level SOMETHING ELSE -- "<<base_param[i].getType());
+        // }
       }
     }
+    else
+    {
+      ROS_ERROR_STREAM("ParameterParser::parseYamlParams() -- invalid yaml; top level item: "
+                       << param_name << " should be array");
+      return false;
+    }
+
   }
   else
   {
@@ -163,10 +204,14 @@ bool ParameterParser::parseFileParams(const std::string rospkg, const std::strin
 
 void ParameterParser::expandParamStruct(XmlRpc::XmlRpcValue& val, std::string& param_name)
 {
+
+  std::map<std::string, XmlRpc::XmlRpcValue> tmp_to_add;
+  std::string named_param;
+
   for (auto v : val)
   {
     std::string val_str = static_cast<std::string>(v.first);
-    std::string expanded_param_name = param_name + "/" + val_str;
+    std::string expanded_param_name = param_name + "/" + val_str;  
 
     if (v.second.getType() == XmlRpc::XmlRpcValue::TypeStruct)
     {
@@ -175,37 +220,71 @@ void ParameterParser::expandParamStruct(XmlRpc::XmlRpcValue& val, std::string& p
     }
     else if (v.second.getType() == XmlRpc::XmlRpcValue::TypeArray)
     {
-      ROS_INFO_STREAM("    array in struct");
+      ROS_WARN_STREAM("    array in struct");
       expandParamArray(v.second, expanded_param_name);
     }
     else if (v.second.getType() == XmlRpc::XmlRpcValue::TypeString)
     {
-      dynamic_strings_[expanded_param_name] = static_cast<std::string>(v.second);
-      ROS_INFO_STREAM("      -- added " << dynamic_strings_[expanded_param_name] << " from struct to dynamic strings");
-      nh_.setParam(expanded_param_name, dynamic_strings_[expanded_param_name]);
+      std::string tmp_str = static_cast<std::string>(v.second);
+      
+      if (val_str.find("name") != std::string::npos)
+      {
+        named_param = tmp_str;
+        ROS_ERROR_STREAM("      found name >> "<<named_param);
+      }
+      else
+      {
+        tmp_to_add[v.first] = v.second;
+        ROS_WARN_STREAM("      adding tmp param -- "<<v.first);
+      }
     }
-    else if (v.second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
+    else
     {
-      dynamic_doubles_[expanded_param_name] = static_cast<double>(v.second);
-      ROS_INFO_STREAM("      -- added " << dynamic_doubles_[expanded_param_name] << " from struct to dynamic doubles");
-      nh_.setParam(expanded_param_name, dynamic_doubles_[expanded_param_name]);
+      tmp_to_add[v.first] = v.second;
+      ROS_WARN_STREAM("      adding tmp param -- "<<v.first);
     }
-    else if (v.second.getType() == XmlRpc::XmlRpcValue::TypeInt)
-    {
-      dynamic_ints_[expanded_param_name] = static_cast<int>(v.second);
-      ROS_INFO_STREAM("      -- added " << dynamic_ints_[expanded_param_name] << " from struct to dynamic ints");
-      nh_.setParam(expanded_param_name, dynamic_ints_[expanded_param_name]);
+  }
+
+  std::cout<<std::endl;
+
+  for (auto t : tmp_to_add)
+  {
+    std::string full_param_name = param_name + "/" + named_param + "/" + t.first;
+    
+    dynamic_param_vals_[full_param_name] = t.second;
+
+    if (t.second.getType() == XmlRpc::XmlRpcValue::TypeString)
+    {  
+      std::string param_val = static_cast<std::string>(t.second);
+      nh_.setParam(full_param_name, param_val);
+
+      ROS_INFO_STREAM("  **  added dynamic STRING: "<<param_val<<" as param: "<<full_param_name);
     }
-    else if (v.second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+    else if (t.second.getType() == XmlRpc::XmlRpcValue::TypeDouble)
     {
-      dynamic_bools_[expanded_param_name] = static_cast<bool>(v.second);
-      ROS_INFO_STREAM("      -- added " << dynamic_bools_[expanded_param_name] << " from struct to dynamic bools");
-      nh_.setParam(expanded_param_name, dynamic_bools_[expanded_param_name]);
+      double param_val = static_cast<double>(t.second);
+      nh_.setParam(full_param_name, param_val);
+
+      ROS_INFO_STREAM("  **  added dynamic DOUBLE: "<<param_val<<" as param: "<<full_param_name);
+    }
+    else if (t.second.getType() == XmlRpc::XmlRpcValue::TypeInt)
+    {
+      int param_val = static_cast<int>(t.second);
+      nh_.setParam(full_param_name, param_val);
+
+      ROS_INFO_STREAM("  **  added dynamic INT: "<<param_val<<" as param: "<<full_param_name);
+    }
+    else if (t.second.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+    {
+      bool param_val = static_cast<bool>(t.second);
+      nh_.setParam(full_param_name, param_val);
+
+      ROS_INFO_STREAM("  **  added dynamic BOOL: "<<param_val<<" as param: "<<full_param_name);
     }
     else
     {
       // todo -- make this into a LUT with strings for types
-      ROS_ERROR_STREAM("ParameterParser::expandParamStruct() -- unexpected XmlRpc type: " << v.second.getType());
+      ROS_ERROR_STREAM("ParameterParser::expandParamStruct() -- unexpected XmlRpc type: " << t.second.getType());
     }
   }
 }
@@ -217,15 +296,15 @@ void ParameterParser::expandParamArray(XmlRpc::XmlRpcValue& val, std::string& pa
 
   for (auto i=0; i < val.size(); ++i)
   {
-    ROS_WARN_STREAM("have: "<<val[i]<<" in param: "<<param_name);
+    // ROS_WARN_STREAM("have: "<<val[i]<<" in param: "<<param_name);
     if (val[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
     {
-      ROS_WARN_STREAM("struct in array");
+      ROS_WARN_STREAM("      struct in array");
       expandParamStruct(val[i], param_name);
     }
     else if (val[i].getType() == XmlRpc::XmlRpcValue::TypeArray)
     {
-      ROS_WARN_STREAM("another array; recursive call!");
+      ROS_WARN_STREAM("      another array; recursive call!");
       return expandParamArray(val[i], param_name);
     }
     else if (val[i].getType() == XmlRpc::XmlRpcValue::TypeString)
@@ -234,26 +313,30 @@ void ParameterParser::expandParamArray(XmlRpc::XmlRpcValue& val, std::string& pa
       std::string expanded_param_name = param_name + "/" + type_str;
       
       dynamic_strings_[expanded_param_name] = type_str;
-      ROS_INFO_STREAM("      -- added " << dynamic_strings_[expanded_param_name] << " from array to dynamic strings");
+      ROS_INFO_STREAM("      "<<param_name<<" -- added " << dynamic_strings_[expanded_param_name] << " from array to dynamic strings");
+      dynamic_param_vals_[param_name] = val[i];
       nh_.setParam(expanded_param_name, dynamic_strings_[expanded_param_name]);
     }
     else if (val[i].getType() == XmlRpc::XmlRpcValue::TypeDouble)
     {
       // dynamic_doubles_[expanded_param_name] = static_cast<double>(val[i]);
-      ROS_INFO_STREAM("      -- (todo) added " << dynamic_doubles_[param_name] << " from array to dynamic doubles");
+      ROS_INFO_STREAM("      "<<param_name<<" -- (todo) added " << dynamic_doubles_[param_name] << " from array to dynamic doubles");
+      dynamic_param_vals_[param_name] = val[i];
       // nh_.setParam(expanded_param_name, dynamic_doubles_[expanded_param_name]);
     }
     else if (val[i].getType() == XmlRpc::XmlRpcValue::TypeInt)
     {
       // dynamic_ints_[expanded_param_name] = static_cast<int>(val[i]);
       test_arry.push_back(static_cast<int>(val[i]));
-      ROS_INFO_STREAM("      -- (todo) added " << dynamic_ints_[param_name] << " from array to dynamic ints");
+      ROS_INFO_STREAM("      "<<param_name<<" -- (todo) added " << dynamic_ints_[param_name] << " from array to dynamic ints");
+      dynamic_param_vals_[param_name] = val[i];
       // nh_.setParam(expanded_param_name, dynamic_ints_[expanded_param_name]);
     }
     else if (val[i].getType() == XmlRpc::XmlRpcValue::TypeBoolean)
     {
       // dynamic_bools_[expanded_param_name] = static_cast<bool>(val[i]);
-      ROS_INFO_STREAM("      -- (todo) added " << dynamic_bools_[param_name] << " from array to dynamic bools");
+      ROS_INFO_STREAM("      "<<param_name<<" -- (todo) added " << dynamic_bools_[param_name] << " from array to dynamic bools");
+      dynamic_param_vals_[param_name] = val[i];
       // nh_.setParam(expanded_param_name, dynamic_bools_[expanded_param_name]);
     }
     else

@@ -27,6 +27,7 @@ class ParameterParser
   void expandParamArray(XmlRpc::XmlRpcValue& val, std::string& param_name);
 
   ros::NodeHandle nh_;
+  std::string controller_name_;
   std::string filename_;
   std::string pkg_path_;
   std::string file_path_;
@@ -40,8 +41,10 @@ class ParameterParser
   std::map<std::string, int> dynamic_ints_;
   std::map<std::string, bool> dynamic_bools_;
 
+  std::map<std::string, XmlRpc::XmlRpcValue> dynamic_param_vals_;
+
 public:
-  ParameterParser(const ros::NodeHandle _nh, const std::string _type);
+  ParameterParser(const ros::NodeHandle _nh, const std::string name, const std::string _type);
   ~ParameterParser();
 
   bool parseYamlParams(const std::string param_base);

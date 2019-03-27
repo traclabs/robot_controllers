@@ -122,12 +122,12 @@ public:
       ROS_ERROR_STREAM("Controller::init() -- please initialize ref_sub_ to subscribe to data on getReferenceTopic()");
     }
 
-    parser_ = std::make_shared<robot_controllers::ParameterParser>(nh, "controller");
+    parser_ = std::make_shared<robot_controllers::ParameterParser>(nh, getName(), "controller");
     // if (!parser_->parseFileParams("robot_controllers", "craftsman_controllers.yaml"))
     // {
     //   ROS_ERROR_STREAM("Controller::init() -- could not parse parameters from file");
     // }
-    if (!parser_->parseYamlParams("/controllers_test/cartesian"))
+    if (!parser_->parseYamlParams("/controllers"))
     {
       ROS_ERROR_STREAM("Controller::init() -- could not parse cartesian parameters from the param server");
     }
