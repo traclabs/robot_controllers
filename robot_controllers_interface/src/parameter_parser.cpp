@@ -46,57 +46,16 @@ bool ParameterParser::parseYamlParams(const std::string param_base)
 
         if (base_param[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
         {
-          // ROS_INFO_STREAM("top level STRUCT");
-          
           // parse first struct
           for (auto v : base_param[i])
           {
             std::string val_str = static_cast<std::string>(v.first);
             std::string expanded_param_name = param_name + "/" + val_str;
-            // ROS_INFO_STREAM("  midlevel param name: "<<expanded_param_name);
-
-            // if (v.second.getType() == XmlRpc::XmlRpcValue::TypeArray)
-            // {
-            //   ROS_INFO_STREAM("  midlevel will expand array");
-            //   expandParamArray(v.second, expanded_param_name);
-            // }
-            // else 
             if (val_str == "params"
                 && v.second.getType() == XmlRpc::XmlRpcValue::TypeStruct)
             {
-              // ROS_INFO_STREAM("  midlevel will expand struct");
-
-              // std::string name = "";
-              // for (auto tmp : v.second)
-              // {
-              //   std::string tmp_str = static_cast<std::string>(tmp.first);
-              //   ROS_ERROR_STREAM("have param: "<<tmp_str);
-              //   if (tmp_str == "name")
-              //   {
-              //     name = static_cast<std::string>(tmp.second);
-              //     ROS_ERROR_STREAM("found our name! >> "<<name);
-              //   }
-              // }
-
-              // if (name.empty())
-              // {
-              //   ROS_ERROR_STREAM("no name given for param");
-              //   continue;
-              // }
-
-              // expanded_param_name = expanded_param_name + "/" + name;
-
               expandParamStruct(v.second, expanded_param_name);
             }
-            // else if (v.second.getType() == XmlRpc::XmlRpcValue::TypeString)
-            // {
-            //   std::string str = static_cast<std::string>(v.second);
-            //   // ROS_INFO_STREAM("  midlevel["<<val_str<<"] is string: "<<str);
-            // }
-            // else
-            // {
-            //   // ROS_WARN_STREAM("  midlevel SOMETHING ELSE");
-            // }
           }
         }
         else
@@ -104,20 +63,6 @@ bool ParameterParser::parseYamlParams(const std::string param_base)
           ROS_ERROR_STREAM("ParameterParser::parseYamlParams() -- invalid yaml " << param_name << " should be struct");
           return false;
         }
-        // else if (base_param[i].getType() == XmlRpc::XmlRpcValue::TypeArray)
-        // {
-        //   ROS_WARN_STREAM("top level ARRAY");
-        // }
-        // else if (base_param[i].getType() == XmlRpc::XmlRpcValue::TypeString)
-        // {
-        //   ROS_INFO_STREAM("top level STRING");
-        //   std::string val_str = static_cast<std::string>(base_param[i]);
-        //   top_level_type_names_[param_name].push_back(val_str);
-        // }
-        // else
-        // {
-        //   ROS_WARN_STREAM("top level SOMETHING ELSE -- "<<base_param[i].getType());
-        // }
       }
     }
     else

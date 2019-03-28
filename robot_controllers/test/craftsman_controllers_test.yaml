@@ -1,53 +1,83 @@
 controllers_test:
-  joint_trajectory:
-    - "craftsman_controllers/TrajStreamingController"
-    - "craftsman_controllers/ROSControlTrajController"
-
-  path:
-    - "craftsman_controllers/Unicycle2DController"
-    - "craftsman_controllers/PathPID2DController"
-
-  cartesian:
-    - "craftsman_controllers/CartesianPoseController" :
-      - p_gain :
+  
+  - type: craftsman_controllers/CartesianPoseController
+    ref_type: geometry_msgs/PoseStamped
+    cmd_type: sensor_msgs/JointState
+    params:
+      fb_trans:
+        - name: "p_gain"
           type: double_range
           min_val: 0
-          max_val: 100
-          default: 10
-          ui_type: slider
-      - i_gain :
-          type: double_range
-          min_val: 0
-          max_val: 100
-          default: 10
+          max_val: 10
+          value: 0.05
           ui_type: spinbox
-      - d_gain :
+        - name: "i_gain"
           type: double_range
           min_val: 0
-          max_val: 100
-          default: 10
-          ui_type: slider
-    - "craftsman_controllers/FakeSimpleBoolController" :
-        type: bool
-        default: true
-        ui_type: radio
-    - "craftsman_controllers/FakeSimpleTextDropdownController" :
-        type: choice
-        default: option1
-        ui_type: dropdown
-        options: 
-          - option1
-          - option2
-          - option3
-          - option4
-          - option5
-    - "craftsman_controllers/FakeSimpleNumberDropdownController" :
-        type: choice
-        default: 1
-        ui_type: dropdown
-        options: 
-          - 1
-          - 2
-          - 3
-          - 4
-          - 5
+          max_val: 10
+          value: 0.0
+          ui_type: spinbox
+        - name: "d_gain"
+          type: double_range
+          min_val: 0
+          max_val: 10
+          value: 0.01
+          ui_type: spinbox
+      fb_rot:
+        - name: "p_gain"
+          type: double_range
+          min_val: 0
+          max_val: 10
+          value: 0.25
+          ui_type: spinbox
+        - name: "i_gain"
+          type: double_range
+          min_val: 0
+          max_val: 10
+          value: 0.0
+          ui_type: spinbox
+        - name: "d_gain"
+          type: double_range
+          min_val: 0
+          max_val: 10
+          value: 0.01
+          ui_type: spinbox
+
+  - type: craftsman_controllers/TrajStreamingController
+    ref_type: sensor_msgs/JointTrajectory
+    cmd_type: sensor_msgs/JointState
+  - type: craftsman_controllers/Unicycle2DController
+    ref_type: nav_msgs/Path
+    cmd_type: geometry_msgs/Twist
+  - type: craftsman_controllers/PathPID2DController
+    ref_type: nav_msgs/Path
+    cmd_type: geometry_msgs/Twist
+  - type: craftsman_controllers/ROSControlTrajController
+    ref_type: sensor_msgs/JointTrajectory
+    cmd_type: sensor_msgs/JointState
+
+
+# - "craftsman_controllers/FakeSimpleBoolController" :
+#     type: bool
+#     value: true
+#     ui_type: radio
+# - "craftsman_controllers/FakeSimpleTextDropdownController" :
+#     type: choice
+#     value: option1
+#     ui_type: dropdown
+#     options: 
+#       - option1
+#       - option2
+#       - option3
+#       - option4
+#       - option5
+# - "craftsman_controllers/FakeSimpleNumberDropdownController" :
+#     type: choice
+#     value: 1
+#     ui_type: dropdown
+#     options: 
+#       - 1
+#       - 2
+#       - 3
+#       - 4
+#       - 5
