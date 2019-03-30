@@ -42,8 +42,6 @@ bool ParameterParser::parseYamlParams(const std::string param_base)
     {
       for (auto i = 0; i < base_param.size(); ++i)
       {
-        ROS_INFO_STREAM("toplevel param name: "<<param_name);
-
         if (base_param[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
         {
           // parse first struct
