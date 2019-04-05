@@ -48,7 +48,7 @@ public:
 
   bool parseYamlParams(const std::string param_base);
   bool parseFileParams(const std::string rospkg, const std::string file);
-  void setParams(std::string param_name, std::map<std::string, XmlRpc::XmlRpcValue>& param_map);
+  void setParams(std::string param_name, std::string name_str, std::map<std::string, XmlRpc::XmlRpcValue>& param_map);
 };
 }
 

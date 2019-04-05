@@ -195,7 +195,7 @@ void ParameterParser::expandParamStruct(XmlRpc::XmlRpcValue& val, std::string& p
   }
 
   if (!tmp_to_add.empty())
-    setParams(named_param, tmp_to_add);
+    setParams(param_name, named_param, tmp_to_add);
   else
     ROS_WARN_STREAM("ParameterParser::expandParamStruct() -- no parameters to add to param server");
 }
@@ -214,43 +214,53 @@ void ParameterParser::expandParamArray(XmlRpc::XmlRpcValue& val, std::string& pa
   {
     if (val[i].getType() == XmlRpc::XmlRpcValue::TypeStruct)
     {
-      ROS_WARN_STREAM("(tmp) ----- it's a struct");
+      ROS_WARN_STREAM("(tmp) ----- [array] it's a struct");
       expandParamStruct(val[i], param_name);
     }
     else if (val[i].getType() == XmlRpc::XmlRpcValue::TypeArray)
     {
-      ROS_WARN_STREAM("(tmp) ----- it's an array");
+      ROS_WARN_STREAM("(tmp) ----- [array] it's an array");
       return expandParamArray(val[i], param_name);
     }
     else if (val[i].getType() == XmlRpc::XmlRpcValue::TypeString)
     {
-      ROS_WARN_STREAM("(tmp) ----- it's a string");
-      std::string val_str = static_cast<std::string>(val[i]);
-      if (val_str.find("name") != std::string::npos)
-      {
-        // std::string tmp_str = static_cast<std::string>(val[i]);
-        named_param = val_str;  // tmp_str;
-      }
-      else
-      {
-        tmp_to_add[val[i]] = val[i];
-      }
+      std::string type_str = static_cast<std::string>(val[i]);
+      std::string expanded_param_name = param_name + "/" + type_str;
+      ROS_WARN_STREAM("(tmp) ----- [array] it's a string >> "<<type_str<<" from param "<<expanded_param_name);
+      dynamic_param_vals_[expanded_param_name] = val[i];
+      nh_.setParam(expanded_param_name, type_str);
+    }
+    else if (val[i].getType() == XmlRpc::XmlRpcValue::TypeDouble)
+    {
+      double param_val = static_cast<double>(val[i]);
+      ROS_WARN_STREAM("(tmp) ----- [array] it's a double >> "<<param_val<<" from param "<<param_name);
+      dynamic_param_vals_[param_name] = val[i];
+      nh_.setParam(param_name, param_val);
+    }
+    else if (val[i].getType() == XmlRpc::XmlRpcValue::TypeInt)
+    {
+      int param_val = static_cast<int>(val[i]);
+      ROS_WARN_STREAM("(tmp) ----- [array] it's an int >> "<<param_val<<" from param "<<param_name);
+      dynamic_param_vals_[param_name] = val[i];
+      nh_.setParam(param_name, param_val);
+    }
+    else if (val[i].getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+    {
+      bool param_val = static_cast<bool>(val[i]);
+      ROS_WARN_STREAM("(tmp) ----- [array] it's a bool >> "<<param_val<<" from param "<<param_name);
+      dynamic_param_vals_[param_name] = val[i];
+      nh_.setParam(param_name, param_val);
     }
     else
     {
-      ROS_WARN_STREAM("(tmp) ----- it's a something else");
-      tmp_to_add[val[i]] = val[i];
+      ROS_ERROR_STREAM("ParameterParser::expandParamArray() -- unexpected XmlRpc type: "
+                       << TypeString[val[i].getType()]);
     }
   }
-
-  if (!tmp_to_add.empty())
-    setParams(named_param, tmp_to_add);
-  else
-    ROS_WARN_STREAM("ParameterParser::expandParamStruct() -- no parameters to add to param server");
 }
 
 
-void ParameterParser::setParams(std::string param_name, std::map<std::string, XmlRpc::XmlRpcValue>& param_map)
+void ParameterParser::setParams(std::string param_name, std::string name_str, std::map<std::string, XmlRpc::XmlRpcValue>& param_map)
 {
   // assuming we have a name now
   // post the params to the rosparam server
@@ -260,15 +270,10 @@ void ParameterParser::setParams(std::string param_name, std::map<std::string, Xm
   for (auto param : param_map)
   {
     std::string full_param_name;
-    // if (param_name.empty())
-    //   full_param_name = param_name + "/" + param.first;
-    // else
-    //   full_param_name = param_name + "/" + param_name + "/" + param.first;
-    if (param_name.empty())
+    if (name_str.empty())
       full_param_name = param_name + "/" + param.first;
     else
-      full_param_name = param_name + "/" + param_name + "/" + param.first;
-    ROS_WARN_STREAM("(tmp) ------- have param name: "<<param_name<<" and full param name: "<<full_param_name);
+      full_param_name = param_name + "/" + name_str + "/" + param.first;
 
     dynamic_param_vals_[full_param_name] = param.second;
 
