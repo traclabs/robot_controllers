@@ -129,16 +129,8 @@ public:
     // }
     if (!parser_->parseYamlParams("/controllers"))
     {
-      ROS_ERROR_STREAM("Controller::init() -- could not parse cartesian parameters from the param server");
+      ROS_ERROR_STREAM("Controller::init() -- could not parse controller parameters from the server");
     }
-    // if (!parser_->parseYamlParams("/controllers_test/joint_trajectory"))
-    // {
-    //   ROS_ERROR_STREAM("Controller::init() -- could not parse joint_trajectory parameters from the param server");
-    // }
-    // if (!parser_->parseYamlParams("/controllers_test/path"))
-    // {
-    //   ROS_ERROR_STREAM("Controller::init() -- could not parse path parameters from the param server");
-    // }
 
     return 0;
   }
