@@ -165,7 +165,7 @@ int ControllerManager::requestStart(const std::string& name)
 
 int ControllerManager::requestStop(const std::string& name)
 {
-  ROS_INFO_STREAM("ControllerManager::requestStop" << name);
+  ROS_INFO_STREAM("ControllerManager::requestStop() -- " << name);
   // Find controller
   for (ControllerList::iterator c = controllers_.begin(); c != controllers_.end(); c++)
   {
