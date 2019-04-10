@@ -177,7 +177,6 @@ void ParameterParser::expandParamStruct(XmlRpc::XmlRpcValue& val, std::string& p
     }
     else if (v.second.getType() == XmlRpc::XmlRpcValue::TypeArray)
     {
-      std::cout<<std::endl;
       ROS_INFO_STREAM("calling expand on array from STRUCT with first thing: "<<v.first);
       for (auto i=0; i < v.second.size(); ++i)
       {
@@ -185,9 +184,6 @@ void ParameterParser::expandParamStruct(XmlRpc::XmlRpcValue& val, std::string& p
         ROS_INFO_STREAM("(tmp) ------- created array str: "<<tmp_str);
         tmp_to_add[tmp_str] = v.second[i];
       }
-      std::cout<<std::endl;
-
-      // expandParamArray(v.second, expanded_param_name);
     }
     else if (v.second.getType() == XmlRpc::XmlRpcValue::TypeString)
     {

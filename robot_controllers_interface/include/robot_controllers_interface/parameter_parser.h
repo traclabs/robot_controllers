@@ -50,6 +50,6 @@ public:
   bool parseFileParams(const std::string rospkg, const std::string file);
   void setParams(std::string param_name, std::string name_str, std::map<std::string, XmlRpc::XmlRpcValue>& param_map);
 };
-}
+}  // namespace robot_controllers
 
 #endif
