@@ -113,13 +113,13 @@ bool ParameterParser::parseFileParams(const std::string rospkg, const std::strin
   pkg_path_ = rospkg;
   filename_ = file;
 
-  ROS_INFO_STREAM("ParameterParser::parseParams() -- parsing parameters from file: "
+  ROS_INFO_STREAM("ParameterParser::parseFileParams() -- parsing parameters from file: "
                   << filename_ << " in rospkg: " << pkg_path_);
 
   std::string yaml_path = ros::package::getPath(pkg_path_);
   if (yaml_path.empty())
   {
-    ROS_ERROR_STREAM("ParameterParser::parseParams() -- couldn't find path to package: " << pkg_path_);
+    ROS_ERROR_STREAM("ParameterParser::parseFileParams() -- couldn't find path to package: " << pkg_path_);
     return false;
   }
 
@@ -148,7 +148,7 @@ bool ParameterParser::parseFileParams(const std::string rospkg, const std::strin
   {
     if (fp.find(filename_) != std::string::npos)
     {
-      ROS_INFO_STREAM("ParameterParser::parseParams() -- found config fire at: " << fp);
+      ROS_INFO_STREAM("ParameterParser::parseFileParams() -- found config fire at: " << fp);
       file_path_ = fp;
       break;
     }
@@ -180,9 +180,17 @@ void ParameterParser::expandParamStruct(XmlRpc::XmlRpcValue& val, std::string& p
       ROS_INFO_STREAM("calling expand on array from STRUCT with first thing: "<<v.first);
       for (auto i=0; i < v.second.size(); ++i)
       {
-        std::string tmp_str = val_str + "/" + static_cast<std::string>(v.second[i]);
-        ROS_INFO_STREAM("(tmp) ------- created array str: "<<tmp_str);
-        tmp_to_add[tmp_str] = v.second[i];
+        if (v.second[i].getType() == XmlRpc::XmlRpcValue::TypeString)
+        {
+          std::string tmp_str = val_str + "/" + static_cast<std::string>(v.second[i]);
+          ROS_INFO_STREAM("(tmp) ------- created array str: "<<tmp_str);
+          tmp_to_add[tmp_str] = v.second[i];
+        }
+        else
+        {
+          ROS_WARN_STREAM("ParameterParser::expandParamStruct() -- error reading in parameter for \'"
+                          << val_str << "\'");
+        }
       }
     }
     else if (v.second.getType() == XmlRpc::XmlRpcValue::TypeString)
