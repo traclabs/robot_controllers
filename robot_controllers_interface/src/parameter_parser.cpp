@@ -10,14 +10,100 @@ ParameterParser::ParameterParser(const ros::NodeHandle _nh, const std::string _n
   parsing_type_(_type)
 {
   ROS_INFO_STREAM("ParameterParser() -- creating parser for: \'" << parsing_type_ << "\'");
+  param_update_timer_ = nh_.createTimer(ros::Duration(1), &ParameterParser::paramUpdatesCallback, this, false);
+  param_update_timer_.start();
 }
 
 
-ParameterParser::~ParameterParser() {}
+ParameterParser::~ParameterParser()
+{
+  param_update_timer_.stop();
+}
+
+
+void ParameterParser::paramUpdatesCallback(const ros::TimerEvent&)
+{
+  if (params_to_monitor_.empty())
+  {
+    return;
+  }
+
+  for (auto &param : params_to_monitor_)
+  {
+    XmlRpc::XmlRpcValue xmlval;
+    if (nh_.getParamCached(param.first, xmlval))
+    {
+      if (xmlval.getType() == XmlRpc::XmlRpcValue::TypeStruct)
+      {
+        ROS_WARN_STREAM("ParameterParser::paramUpdatesCallback() -- found ARRAY");
+      }
+      else if (xmlval.getType() == XmlRpc::XmlRpcValue::TypeArray)
+      {
+        ROS_WARN_STREAM("ParameterParser::paramUpdatesCallback() -- found ARRAY");
+      }
+      else if (xmlval.getType() == XmlRpc::XmlRpcValue::TypeString)
+      {
+        std::string type_str = static_cast<std::string>(xmlval);
+        std::string compare_str = static_cast<std::string>(param.second);
+        std::string expanded_param_name = param.first + "/" + type_str;
+        if (type_str != compare_str)
+        {
+          ROS_INFO_STREAM("ParameterParser::paramUpdatesCallback() -- updating STRING: "
+                           << type_str << " under parameter: " << expanded_param_name);
+          param.second = xmlval;
+        }
+      }
+      else if (xmlval.getType() == XmlRpc::XmlRpcValue::TypeDouble)
+      {
+        double param_val = static_cast<double>(xmlval);
+        double compare_val = static_cast<double>(param.second);
+        if (param_val != compare_val)
+        {
+          ROS_INFO_STREAM("ParameterParser::paramUpdatesCallback() -- updating DOUBLE: "
+                           << param_val << " under parameter: " << param.first);
+          param.second = xmlval;
+        }
+      }
+      else if (xmlval.getType() == XmlRpc::XmlRpcValue::TypeInt)
+      {
+        int param_val = static_cast<int>(xmlval);
+        int compare_val = static_cast<int>(param.second);
+        if (param_val != compare_val)
+        {
+          ROS_INFO_STREAM("ParameterParser::paramUpdatesCallback() -- updating INT: "
+                           << param_val << " under parameter: " << param.first);
+          param.second = xmlval;
+        }
+      }
+      else if (xmlval.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+      {
+        bool param_val = static_cast<bool>(xmlval);
+        bool compare_val = static_cast<bool>(param.second);
+        if (param_val != compare_val)
+        {
+          ROS_INFO_STREAM("ParameterParser::paramUpdatesCallback() -- updating BOOL: "
+                           << param_val << " under parameter: " << param.first);
+          param.second = xmlval;
+        }
+      }
+      else
+      {
+        ROS_ERROR_STREAM("ParameterParser::paramUpdatesCallback() -- unexpected XmlRpc type: "
+                         << TypeString[xmlval.getType()]);
+      }
+    }
+    else
+    {
+      ROS_WARN_STREAM("ParameterParser::paramUpdatesCallback() -- parameter \'"
+                      << param.first << "\' not found on server");
+    }
+  }
+}
 
 
 bool ParameterParser::parseYamlParams(const std::string param_base)
 {
+
   XmlRpc::XmlRpcValue base_param;
   if (nh_.getParamCached(param_base, base_param))
   {
@@ -283,6 +369,11 @@ void ParameterParser::setParams(std::string param_name, std::string name_str, st
       full_param_name = param_name + "/" + name_str + "/" + param.first;
 
     dynamic_param_vals_[full_param_name] = param.second;
+
+    if (full_param_name.find("value") != std::string::npos)
+    {
+      params_to_monitor_[full_param_name] = param.second;
+    }
 
     if (param.second.getType() == XmlRpc::XmlRpcValue::TypeString)
     {

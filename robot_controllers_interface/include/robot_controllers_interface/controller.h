@@ -222,11 +222,12 @@ public:
   /** @brief the subscriber topic name to receive inputs from */
   std::string ref_topic_;
 
+protected:
+  std::shared_ptr<robot_controllers::ParameterParser> parser_;
+
 private:
   std::string name_;
   std::string unique_name_;
-
-  std::shared_ptr<robot_controllers::ParameterParser> parser_;
 
   std::string generateUniqueName(size_t length = 64)
   {

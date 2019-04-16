@@ -30,7 +30,12 @@ class ParameterParser
   void expandParamStruct(XmlRpc::XmlRpcValue& val, std::string& param_name);
   void expandParamArray(XmlRpc::XmlRpcValue& val, std::string& param_name);
 
+  void paramUpdatesCallback(const ros::TimerEvent&);
+
   ros::NodeHandle nh_;
+
+  ros::Timer param_update_timer_;
+
   std::string manager_name_;
   std::string filename_;
   std::string pkg_path_;
@@ -41,6 +46,8 @@ class ParameterParser
   std::map<std::string, std::vector<ParamGroup> > type_name_params_;
 
   std::map<std::string, XmlRpc::XmlRpcValue> dynamic_param_vals_;
+
+  std::map<std::string, XmlRpc::XmlRpcValue> params_to_monitor_;
 
 public:
   ParameterParser(const ros::NodeHandle _nh, const std::string name, const std::string _type);
