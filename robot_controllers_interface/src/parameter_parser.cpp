@@ -9,7 +9,8 @@ ParameterParser::ParameterParser(const ros::NodeHandle _nh, const std::string _n
   manager_name_(_name),
   parsing_type_(_type)
 {
-  ROS_INFO_STREAM("ParameterParser() -- creating parser for: \'" << parsing_type_ << "\'");
+  ROS_INFO_STREAM("ParameterParser() -- creating parser for: \'"
+                  << parsing_type_ << "\' for \'" << manager_name_ << "\'");
   param_update_timer_ = nh_.createTimer(ros::Duration(1), &ParameterParser::paramUpdatesCallback, this, false);
   param_update_timer_.start();
 }
@@ -62,6 +63,17 @@ void ParameterParser::paramUpdatesCallback(const ros::TimerEvent&)
           ROS_INFO_STREAM("ParameterParser::paramUpdatesCallback() -- updating DOUBLE: "
                            << param_val << " under parameter: " << param.first);
           param.second = xmlval;
+
+          for (auto &dyn : dynamic_doubles_)
+          {
+            ROS_WARN_STREAM("looking for dynamic dbl param: "<<dyn.first<<" in string: "<<param.first);
+            if (param.first.find(dyn.first) != std::string::npos)
+            {
+              *dyn.second = param_val;
+              ROS_ERROR_STREAM("matched param >> "<<param.first<<" and set to "<<*dyn.second<<" at ptr: "<<dyn.second);
+              break;
+            }
+          }
         }
       }
       else if (xmlval.getType() == XmlRpc::XmlRpcValue::TypeInt)
@@ -444,4 +456,12 @@ void ParameterParser::findFilesInDir(std::string path, std::vector<std::string>&
   {
     ROS_ERROR_STREAM("ParameterParser::findFilesInDir() -- path doesn't exist!");
   }
+}
+
+
+bool ParameterParser::registerDouble(const std::string param, double* ptr)
+{
+  ROS_WARN_STREAM("ParameterParser::registerDouble() -- registering param "<<param<<" of value: "<<*ptr<<" at address "<<ptr);
+  dynamic_doubles_[param] = ptr;
+  return true;
 }

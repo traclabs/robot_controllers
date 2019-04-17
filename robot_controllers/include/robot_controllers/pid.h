@@ -83,8 +83,23 @@ public:
    */
   double update(double error, double error_dot, double dt);
 
-protected:
+  inline void getValues(double& p, double& i, double& d)
+  {
+    p = p_gain_;
+    i = i_gain_;
+    d = d_gain_;
+  }
 
+  inline void setValues(double p, double i, double d)
+  {
+    ROS_INFO_STREAM_THROTTLE(2, "PID::setValues() -- updating values to: P="
+                             << p << " I=" << i << " D=" << d);
+    p_gain_ = p;
+    i_gain_ = i;
+    d_gain_ = d;
+  }
+
+protected:
   /**
    *  @brief Checks and fixes gain settings
    *  @returns true is gains are ok, false if gains are invalid
@@ -97,6 +112,7 @@ protected:
   double i_gain_;
   /// derivative gain
   double d_gain_;
+
   /// integral gain min and max limits
   double i_max_, i_min_;
 

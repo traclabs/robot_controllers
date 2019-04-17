@@ -26,10 +26,10 @@ const std::string TypeString[] =
 
 class ParameterParser
 {
+  void setParams(std::string param_name, std::string name_str, std::map<std::string, XmlRpc::XmlRpcValue>& param_map);
   void findFilesInDir(std::string path, std::vector<std::string>& files_found);
   void expandParamStruct(XmlRpc::XmlRpcValue& val, std::string& param_name);
   void expandParamArray(XmlRpc::XmlRpcValue& val, std::string& param_name);
-
   void paramUpdatesCallback(const ros::TimerEvent&);
 
   ros::NodeHandle nh_;
@@ -47,7 +47,15 @@ class ParameterParser
 
   std::map<std::string, XmlRpc::XmlRpcValue> dynamic_param_vals_;
 
-  std::map<std::string, XmlRpc::XmlRpcValue> params_to_monitor_;
+  // std::map<std::string, std::string> names_to_params_;  // e.g. "/valkyrie_arm/arm/craftsman_controllers/CartesianPoseController/params/fb_trans/p_gain/value" : "fb_trans/p_gain"
+  std::map<std::string, XmlRpc::XmlRpcValue> params_to_monitor_;  // e.g. "/valkyrie_arm/arm/craftsman_controllers/CartesianPoseController/params/fb_trans/p_gain/value" : XmlRpc::TypeDouble
+
+  // look into having dynamic_other_maps
+  // dynamic_doubles_ e.g. "fb_trans/p_gain" : *(&fb_trans_p_value)
+  std::map<std::string, double*> dynamic_doubles_;
+  std::map<std::string, int*> dynamic_integers_;
+  std::map<std::string, std::string*> dynamic_strings_;
+  std::map<std::string, bool*> dynamic_bools_;
 
 public:
   ParameterParser(const ros::NodeHandle _nh, const std::string name, const std::string _type);
@@ -55,7 +63,11 @@ public:
 
   bool parseYamlParams(const std::string param_base);
   bool parseFileParams(const std::string rospkg, const std::string file);
-  void setParams(std::string param_name, std::string name_str, std::map<std::string, XmlRpc::XmlRpcValue>& param_map);
+
+  // model after this
+  // parser_->registerDoubleRange("fb_trans/p_gain", min_val_, max_val_, cur_val_, "spinbox", &trans_p_gain_);
+  bool registerDouble(const std::string param, double* ptr);
+
 };
 }  // namespace robot_controllers
 
