@@ -24,12 +24,12 @@ ParameterParser::~ParameterParser()
 
 void ParameterParser::paramUpdatesCallback(const ros::TimerEvent&)
 {
-  if (params_to_monitor_.empty())
+  if (dynamic_param_vals_.empty())
   {
     return;
   }
 
-  for (auto &param : params_to_monitor_)
+  for (auto &param : dynamic_param_vals_)
   {
     XmlRpc::XmlRpcValue xmlval;
     if (nh_.getParamCached(param.first, xmlval))
@@ -115,7 +115,6 @@ void ParameterParser::paramUpdatesCallback(const ros::TimerEvent&)
 
 bool ParameterParser::parseYamlParams(const std::string param_base)
 {
-
   XmlRpc::XmlRpcValue base_param;
   if (nh_.getParamCached(param_base, base_param))
   {
@@ -189,58 +188,6 @@ bool ParameterParser::parseYamlParams(const std::string param_base)
                      << param_base << "\' found on server");
     return false;
   }
-  return true;
-}
-
-
-//
-// TODO -- this may be worth adding later
-bool ParameterParser::parseFileParams(const std::string rospkg, const std::string file)
-{
-  pkg_path_ = rospkg;
-  filename_ = file;
-
-  ROS_INFO_STREAM("ParameterParser::parseFileParams() -- parsing parameters from file: "
-                  << filename_ << " in rospkg: " << pkg_path_);
-
-  std::string yaml_path = ros::package::getPath(pkg_path_);
-  if (yaml_path.empty())
-  {
-    ROS_ERROR_STREAM("ParameterParser::parseFileParams() -- couldn't find path to package: " << pkg_path_);
-    return false;
-  }
-
-  // crawl directories looking for the config file
-  std::vector<std::string> file_list;
-  boost::filesystem::path curerent_path(yaml_path);
-  if (boost::filesystem::exists(curerent_path))
-  {
-    if (boost::filesystem::is_directory(curerent_path))
-    {
-      for (boost::filesystem::directory_entry& x : boost::filesystem::directory_iterator(curerent_path))
-      {
-        if (boost::filesystem::is_directory(x.path()))
-        {
-          findFilesInDir(x.path().string(), file_list);
-        }
-        else
-        {
-          file_list.push_back(x.path().string());
-        }
-      }
-    }
-  }
-
-  for (auto fp : file_list)
-  {
-    if (fp.find(filename_) != std::string::npos)
-    {
-      ROS_INFO_STREAM("ParameterParser::parseFileParams() -- found config fire at: " << fp);
-      file_path_ = fp;
-      break;
-    }
-  }
-
   return true;
 }
 
@@ -384,7 +331,7 @@ void ParameterParser::setParams(std::string param_name, std::string name_str, st
 
     if (full_param_name.find("value") != std::string::npos)
     {
-      params_to_monitor_[full_param_name] = param.second;
+      dynamic_param_vals_[full_param_name] = param.second;
     }
 
     if (param.second.getType() == XmlRpc::XmlRpcValue::TypeString)
@@ -424,44 +371,223 @@ void ParameterParser::setParams(std::string param_name, std::string name_str, st
 }
 
 
-void ParameterParser::findFilesInDir(std::string path, std::vector<std::string>& files_found)
+// "spinbox" is default ui_type
+// 0.0 is default min
+// 1.0 is default max
+bool ParameterParser::registerDouble(const std::string param, double* ptr, double min, double max, std::string ui_type)
 {
-  ROS_INFO_STREAM("ParameterParser::findFilesInDir() -- searching directory: \'" << path << "\' for files");
-
-  boost::filesystem::path dir_path(path);
-  if (boost::filesystem::exists(dir_path))
+  if (ptr == NULL)
   {
-    if (boost::filesystem::is_directory(dir_path))
-    {
-      for (boost::filesystem::directory_entry& dir_entry : boost::filesystem::directory_iterator(dir_path))
-      {
-        // check if the path is the same as our pkg and filename
-        if (boost::filesystem::is_directory(dir_entry.path()))
-        {
-          ROS_INFO_STREAM("ParameterParser::findFilesInDir() -- found new directory to search...");
-          return findFilesInDir(dir_entry.path().string(), files_found);
-        }
-        else
-        {
-          files_found.push_back(dir_entry.path().string());
-        }
-      }
-    }
-    else
-    {
-      files_found.push_back(path);
-    }
+    return false;
   }
-  else
-  {
-    ROS_ERROR_STREAM("ParameterParser::findFilesInDir() -- path doesn't exist!");
-  }
-}
 
-
-bool ParameterParser::registerDouble(const std::string param, double* ptr)
-{
   ROS_WARN_STREAM("ParameterParser::registerDouble() -- registering param "<<param<<" of value: "<<*ptr<<" at address "<<ptr);
+
+  // todo -- look to see if there is a slash to start with
+  std::string param_base = "params/" + param;
+  std::string param_value = param_base + "/value";
+  ROS_WARN_STREAM("  **  generated path: "<<param_value);
+  ROS_WARN_STREAM("  **  value: "<<*ptr);
+  nh_.setParam(param_value, *ptr);
+
+  nh_.setParam((param_base + "/min_val"), min);
+  nh_.setParam((param_base + "/max_val"), max);
+  nh_.setParam((param_base + "/ui_type"), ui_type);
+  nh_.setParam((param_base + "/type"), "double_range");
+
   dynamic_doubles_[param] = ptr;
+
   return true;
 }
+
+
+// "radio" is default ui_type
+bool ParameterParser::registerBool(const std::string param, bool* ptr, std::string ui_type)
+{
+  if (ptr == NULL)
+  {
+    return false;
+  }
+
+  std::string param_base = "params/" + param;
+  std::string param_value = param_base + "/value";
+  ROS_WARN_STREAM("  **  generated path: "<<param_value);
+  ROS_WARN_STREAM("  **  value: "<<*ptr);
+  nh_.setParam(param_value, *ptr);
+
+  nh_.setParam((param_base + "/ui_type"), ui_type);
+
+  dynamic_bools_[param] = ptr;
+
+  return true;
+}
+
+
+// "textedit" is default ui_type
+bool ParameterParser::registerString(const std::string param, std::string* ptr, std::string ui_type)
+{
+  if (ptr == NULL)
+  {
+    return false;
+  }
+
+  std::string param_base = "params/" + param;
+  std::string param_value = param_base + "/value";
+  ROS_WARN_STREAM("  **  generated path: "<<param_value);
+  ROS_WARN_STREAM("  **  value: "<<*ptr);
+  nh_.setParam(param_value, *ptr);
+
+  nh_.setParam((param_base + "/ui_type"), ui_type);
+
+  dynamic_strings_[param] = ptr;
+
+  return true;
+}
+
+
+// "slider" is default ui_type
+// 0 is default min
+// 1 is default max
+bool ParameterParser::registerInt(const std::string param, int* ptr, int min, int max, std::string ui_type)
+{
+  if (ptr == NULL)
+  {
+    return false;
+  }
+
+  std::string param_base = "params/" + param;
+  std::string param_value = param_base + "/value";
+  ROS_WARN_STREAM("  **  generated path: "<<param_value);
+  ROS_WARN_STREAM("  **  value: "<<*ptr);
+  nh_.setParam(param_value, *ptr);
+
+  nh_.setParam((param_base + "/min_val"), min);
+  nh_.setParam((param_base + "/max_val"), max);
+  nh_.setParam((param_base + "/ui_type"), ui_type);
+  nh_.setParam((param_base + "/type"), "int_range");
+
+  dynamic_integers_[param] = ptr;
+
+  return true;
+}
+
+
+// ui_type has to be dropdown
+// ptr* should have the default selected option
+bool ParameterParser::registerEnum(const std::string param, std::string* ptr, std::vector<std::string> options)
+{
+  if (ptr == NULL)
+  {
+    return false;
+  }
+
+  if (options.empty())
+  {
+    ROS_WARN_STREAM("ParameterParser::registerEnum() -- empty options list, adding \'"
+                    << *ptr << "\' as the only option");
+    options.push_back(*ptr);
+  }
+
+  std::string param_base = "params/" + param;
+  std::string param_value = param_base + "/value";
+  ROS_WARN_STREAM("  **  generated path: "<<param_value);
+  ROS_WARN_STREAM("  **  value: "<<*ptr);
+  for (auto opt : options)
+    ROS_WARN_STREAM("    **  have option: "<<opt);
+
+  nh_.setParam((param_base + "/options"), options);
+  nh_.setParam(param_value, *ptr);
+  nh_.setParam((param_base + "/ui_type"), "dropdown");
+
+  dynamic_options_[param] = std::make_pair(ptr, options);
+
+  return true;
+}
+
+
+
+//
+// TODO -- this may be worth adding later
+// bool ParameterParser::parseFileParams(const std::string rospkg, const std::string file)
+// {
+//   pkg_path_ = rospkg;
+//   filename_ = file;
+
+//   ROS_INFO_STREAM("ParameterParser::parseFileParams() -- parsing parameters from file: "
+//                   << filename_ << " in rospkg: " << pkg_path_);
+
+//   std::string yaml_path = ros::package::getPath(pkg_path_);
+//   if (yaml_path.empty())
+//   {
+//     ROS_ERROR_STREAM("ParameterParser::parseFileParams() -- couldn't find path to package: " << pkg_path_);
+//     return false;
+//   }
+
+//   // crawl directories looking for the config file
+//   std::vector<std::string> file_list;
+//   boost::filesystem::path curerent_path(yaml_path);
+//   if (boost::filesystem::exists(curerent_path))
+//   {
+//     if (boost::filesystem::is_directory(curerent_path))
+//     {
+//       for (boost::filesystem::directory_entry& x : boost::filesystem::directory_iterator(curerent_path))
+//       {
+//         if (boost::filesystem::is_directory(x.path()))
+//         {
+//           findFilesInDir(x.path().string(), file_list);
+//         }
+//         else
+//         {
+//           file_list.push_back(x.path().string());
+//         }
+//       }
+//     }
+//   }
+
+//   for (auto fp : file_list)
+//   {
+//     if (fp.find(filename_) != std::string::npos)
+//     {
+//       ROS_INFO_STREAM("ParameterParser::parseFileParams() -- found config fire at: " << fp);
+//       file_path_ = fp;
+//       break;
+//     }
+//   }
+
+//   return true;
+// }
+
+
+// void ParameterParser::findFilesInDir(std::string path, std::vector<std::string>& files_found)
+// {
+//   ROS_INFO_STREAM("ParameterParser::findFilesInDir() -- searching directory: \'" << path << "\' for files");
+
+//   boost::filesystem::path dir_path(path);
+//   if (boost::filesystem::exists(dir_path))
+//   {
+//     if (boost::filesystem::is_directory(dir_path))
+//     {
+//       for (boost::filesystem::directory_entry& dir_entry : boost::filesystem::directory_iterator(dir_path))
+//       {
+//         // check if the path is the same as our pkg and filename
+//         if (boost::filesystem::is_directory(dir_entry.path()))
+//         {
+//           ROS_INFO_STREAM("ParameterParser::findFilesInDir() -- found new directory to search...");
+//           return findFilesInDir(dir_entry.path().string(), files_found);
+//         }
+//         else
+//         {
+//           files_found.push_back(dir_entry.path().string());
+//         }
+//       }
+//     }
+//     else
+//     {
+//       files_found.push_back(path);
+//     }
+//   }
+//   else
+//   {
+//     ROS_ERROR_STREAM("ParameterParser::findFilesInDir() -- path doesn't exist!");
+//   }
+// }

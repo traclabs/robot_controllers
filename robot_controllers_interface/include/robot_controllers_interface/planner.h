@@ -75,10 +75,6 @@ public:
     if (name_.at(0) == '/') name_.erase(0, 1);
 
     parser_ = std::make_shared<robot_controllers::ParameterParser>(nh, getName(), "planner");
-    if (!parser_->parseYamlParams("/planners"))
-    {
-      ROS_ERROR_STREAM("Planner::init() -- could not parse planner parameters from the server");
-    }
 
     return 0;
   }

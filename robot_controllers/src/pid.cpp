@@ -67,10 +67,10 @@ PID::PID() :
 
 bool PID::init(const ros::NodeHandle &nh)
 {
-  if (!nh.getParam("p_gain/value", p_gain_))
+  if (!nh.getParam("p_gain/value", p_gain_, 0.))
   {
     // If P-gain is not specified, this often indicates wrong namespace was used
-    ROS_ERROR("No P gain sepcified.  Parameter namespace %s", nh.getNamespace().c_str());
+    ROS_ERROR("PID::init() -- no P gain sepcified.  Parameter namespace %s", nh.getNamespace().c_str());
     return false;
   }
 

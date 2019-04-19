@@ -123,14 +123,6 @@ public:
     }
 
     parser_ = std::make_shared<robot_controllers::ParameterParser>(nh, getName(), "controller");
-    // if (!parser_->parseFileParams("robot_controllers", "craftsman_controllers.yaml"))
-    // {
-    //   ROS_ERROR_STREAM("Controller::init() -- could not parse parameters from file");
-    // }
-    if (!parser_->parseYamlParams("/controllers"))
-    {
-      ROS_ERROR_STREAM("Controller::init() -- could not parse controller parameters from the server");
-    }
 
     return 0;
   }

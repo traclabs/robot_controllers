@@ -92,7 +92,7 @@ public:
 
   inline void setValues(double p, double i, double d)
   {
-    ROS_INFO_STREAM_THROTTLE(2, "PID::setValues() -- updating values to: P="
+    ROS_DEBUG_STREAM_THROTTLE(5.0, "PID::setValues() -- updating values to: P="
                              << p << " I=" << i << " D=" << d);
     p_gain_ = p;
     i_gain_ = i;
