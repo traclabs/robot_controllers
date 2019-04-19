@@ -40,18 +40,45 @@ void ParameterParser::paramUpdatesCallback(const ros::TimerEvent&)
       }
       else if (xmlval.getType() == XmlRpc::XmlRpcValue::TypeArray)
       {
-        ROS_WARN_STREAM("ParameterParser::paramUpdatesCallback() -- found ARRAY");
+        ROS_WARN_STREAM("ParameterParser::paramUpdatesCallback() -- found ARRAY >> "<<xmlval);
       }
       else if (xmlval.getType() == XmlRpc::XmlRpcValue::TypeString)
       {
         std::string type_str = static_cast<std::string>(xmlval);
         std::string compare_str = static_cast<std::string>(param.second);
-        std::string expanded_param_name = param.first + "/" + type_str;
         if (type_str != compare_str)
         {
-          ROS_INFO_STREAM("ParameterParser::paramUpdatesCallback() -- updating STRING: "
-                           << type_str << " under parameter: " << expanded_param_name);
           param.second = xmlval;
+
+          // for text edit strings only
+          for (auto &dyn : dynamic_strings_)
+          {
+            ROS_WARN_STREAM("looking for dynamic string param: "<<dyn.first<<" in string: "<<param.first);
+            if (param.first.find(dyn.first) != std::string::npos)
+            {
+              std::string expanded_param_name = param.first + "/" + type_str;
+              ROS_INFO_STREAM("ParameterParser::paramUpdatesCallback() -- updating STRING: "
+                              << type_str << " under parameter: " << expanded_param_name);
+              *dyn.second = type_str;
+              ROS_ERROR_STREAM("matched param >> "<<param.first<<" and set to "<<*dyn.second<<" at ptr: "<<dyn.second);
+              break;
+            }
+          }
+
+          // for dropdowns
+          for (auto &dyn : dynamic_options_)
+          {
+            ROS_WARN_STREAM("looking for dynamic option param: "<<dyn.first<<" in string: "<<param.first);
+            if (param.first.find(dyn.first) != std::string::npos)
+            {
+              // std::string expanded_param_name = param.first + "/" + type_str;
+              ROS_INFO_STREAM("ParameterParser::paramUpdatesCallback() -- updating STRING: "
+                              << type_str << " under parameter: " << param.first);
+              *dyn.second.first = type_str;
+              ROS_ERROR_STREAM("matched param >> "<<param.first<<" and set to "<<type_str<<" at ptr: "<<dyn.second.first);
+              break;
+            }
+          }
         }
       }
       else if (xmlval.getType() == XmlRpc::XmlRpcValue::TypeDouble)
@@ -85,6 +112,17 @@ void ParameterParser::paramUpdatesCallback(const ros::TimerEvent&)
           ROS_INFO_STREAM("ParameterParser::paramUpdatesCallback() -- updating INT: "
                            << param_val << " under parameter: " << param.first);
           param.second = xmlval;
+
+          for (auto &dyn : dynamic_integers_)
+          {
+            ROS_WARN_STREAM("looking for dynamic string param: "<<dyn.first<<" in string: "<<param.first);
+            if (param.first.find(dyn.first) != std::string::npos)
+            {
+              *dyn.second = param_val;
+              ROS_ERROR_STREAM("matched param >> "<<param.first<<" and set to "<<*dyn.second<<" at ptr: "<<dyn.second);
+              break;
+            }
+          }
         }
       }
       else if (xmlval.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
@@ -96,6 +134,17 @@ void ParameterParser::paramUpdatesCallback(const ros::TimerEvent&)
           ROS_INFO_STREAM("ParameterParser::paramUpdatesCallback() -- updating BOOL: "
                            << param_val << " under parameter: " << param.first);
           param.second = xmlval;
+
+          for (auto &dyn : dynamic_bools_)
+          {
+            ROS_WARN_STREAM("looking for dynamic string param: "<<dyn.first<<" in string: "<<param.first);
+            if (param.first.find(dyn.first) != std::string::npos)
+            {
+              *dyn.second = param_val;
+              ROS_ERROR_STREAM("matched param >> "<<param.first<<" and set to "<<*dyn.second<<" at ptr: "<<dyn.second);
+              break;
+            }
+          }
         }
       }
       else
@@ -397,6 +446,10 @@ bool ParameterParser::registerDouble(const std::string param, double* ptr, doubl
 
   dynamic_doubles_[param] = ptr;
 
+  std::string full_param = nh_.getNamespace() + "/" + param_value;
+  dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  ROS_ERROR_STREAM("putting param base: "<<full_param<<" onto server monitoring value: "<<*ptr<<" at addr:"<< ptr<<" with xml type: "<<TypeString[dynamic_param_vals_[full_param].getType()]);
+
   return true;
 }
 
@@ -419,6 +472,10 @@ bool ParameterParser::registerBool(const std::string param, bool* ptr, std::stri
 
   dynamic_bools_[param] = ptr;
 
+  std::string full_param = nh_.getNamespace() + "/" + param_value;
+  dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  ROS_ERROR_STREAM("putting param base: "<<full_param<<" onto server monitoring value: "<<*ptr<<" at addr:"<< ptr<<" with xml type: "<<TypeString[dynamic_param_vals_[full_param].getType()]);
+
   return true;
 }
 
@@ -440,6 +497,10 @@ bool ParameterParser::registerString(const std::string param, std::string* ptr, 
   nh_.setParam((param_base + "/ui_type"), ui_type);
 
   dynamic_strings_[param] = ptr;
+
+  std::string full_param = nh_.getNamespace() + "/" + param_value;
+  dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  ROS_ERROR_STREAM("putting param base: "<<full_param<<" onto server monitoring value: "<<*ptr<<" at addr:"<< ptr<<" with xml type: "<<TypeString[dynamic_param_vals_[full_param].getType()]);
 
   return true;
 }
@@ -467,6 +528,10 @@ bool ParameterParser::registerInt(const std::string param, int* ptr, int min, in
   nh_.setParam((param_base + "/type"), "int_range");
 
   dynamic_integers_[param] = ptr;
+
+  std::string full_param = nh_.getNamespace() + "/" + param_value;
+  dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  ROS_ERROR_STREAM("putting param base: "<<full_param<<" onto server monitoring value: "<<*ptr<<" at addr:"<< ptr<<" with xml type: "<<TypeString[dynamic_param_vals_[full_param].getType()]);
 
   return true;
 }
@@ -500,6 +565,10 @@ bool ParameterParser::registerEnum(const std::string param, std::string* ptr, st
   nh_.setParam((param_base + "/ui_type"), "dropdown");
 
   dynamic_options_[param] = std::make_pair(ptr, options);
+
+  std::string full_param = nh_.getNamespace() + "/" + param_value;
+  dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  ROS_ERROR_STREAM("putting param base: "<<full_param<<" onto server monitoring value: "<<*ptr<<" at addr:"<< ptr<<" with xml type: "<<TypeString[dynamic_param_vals_[full_param].getType()]);
 
   return true;
 }
