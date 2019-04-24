@@ -49,11 +49,11 @@ class ParameterParser
   std::map<std::string, XmlRpc::XmlRpcValue> dynamic_param_vals_;
 
   // dynamic maps e.g. "fb_trans/p_gain" : *fb_trans_p_value
-  std::map<std::string, bool*> dynamic_bools_;
-  std::map<std::string, int*> dynamic_integers_;
-  std::map<std::string, double*> dynamic_doubles_;
-  std::map<std::string, std::string*> dynamic_strings_;
-  std::map<std::string, std::pair<std::string*, std::vector<std::string> > > dynamic_options_;
+  std::map<std::string, std::shared_ptr<bool>> dynamic_bools_;
+  std::map<std::string, std::shared_ptr<int>> dynamic_integers_;
+  std::map<std::string, std::shared_ptr<double>> dynamic_doubles_;
+  std::map<std::string, std::shared_ptr<std::string> > dynamic_strings_;
+  std::map<std::string, std::pair<std::shared_ptr<std::string>, std::vector<std::string> > > dynamic_options_;
 
 public:
   ParameterParser(const ros::NodeHandle _nh, const std::string name, const std::string _type);
@@ -62,11 +62,11 @@ public:
   bool parseYamlParams(const std::string param_base);
   bool parseFileParams(const std::string rospkg, const std::string file);
 
-  bool registerBool(const std::string param, bool* ptr, std::string ui_type="radio");  // NOLINT
-  bool registerEnum(const std::string param, std::string* ptr, std::vector<std::string> options);  // NOLINT
-  bool registerString(const std::string param, std::string* ptr, std::string ui_type="textedit");  // NOLINT
-  bool registerInt(const std::string param, int* ptr, int min=0, int max=1, std::string ui_type="slider");  // NOLINT
-  bool registerDouble(const std::string param, double* ptr, double min=0.0, double max=1.0, std::string ui_type="spinbox");  // NOLINT
+  bool registerBool(const std::string param, std::shared_ptr<bool> ptr, std::string ui_type="radio");  // NOLINT
+  bool registerEnum(const std::string param, std::shared_ptr<std::string> ptr, std::vector<std::string> options);  // NOLINT
+  bool registerString(const std::string param, std::shared_ptr<std::string> ptr, std::string ui_type="textedit");  // NOLINT
+  bool registerInt(const std::string param, std::shared_ptr<int> ptr, int min=0, int max=1, std::string ui_type="slider");  // NOLINT
+  bool registerDouble(const std::string param, std::shared_ptr<double> ptr, double min=0.0, double max=1.0, std::string ui_type="spinbox");  // NOLINT
 };
 }  // namespace robot_controllers
 

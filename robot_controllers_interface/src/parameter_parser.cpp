@@ -342,7 +342,9 @@ void ParameterParser::expandParamArray(XmlRpc::XmlRpcValue& val, std::string& pa
 }
 
 
-void ParameterParser::setParams(std::string param_name, std::string name_str, std::map<std::string, XmlRpc::XmlRpcValue>& param_map)
+void ParameterParser::setParams(std::string param_name,
+                                std::string name_str,
+                                std::map<std::string, XmlRpc::XmlRpcValue>& param_map)
 {
   // assuming we have a name now
   // post the params to the rosparam server
@@ -404,7 +406,10 @@ void ParameterParser::setParams(std::string param_name, std::string name_str, st
 // "spinbox" is default ui_type
 // 0.0 is default min
 // 1.0 is default max
-bool ParameterParser::registerDouble(const std::string param, double* ptr, double min, double max, std::string ui_type)
+bool ParameterParser::registerDouble(const std::string param,
+                                     std::shared_ptr<double> ptr,
+                                     double min, double max,
+                                     std::string ui_type)
 {
   if (ptr == NULL)
   {
@@ -433,7 +438,9 @@ bool ParameterParser::registerDouble(const std::string param, double* ptr, doubl
 
 
 // "radio" is default ui_type
-bool ParameterParser::registerBool(const std::string param, bool* ptr, std::string ui_type)
+bool ParameterParser::registerBool(const std::string param,
+                                   std::shared_ptr<bool> ptr,
+                                   std::string ui_type)
 {
   if (ptr == NULL)
   {
@@ -459,7 +466,9 @@ bool ParameterParser::registerBool(const std::string param, bool* ptr, std::stri
 
 
 // "textedit" is default ui_type
-bool ParameterParser::registerString(const std::string param, std::string* ptr, std::string ui_type)
+bool ParameterParser::registerString(const std::string param,
+                                     std::shared_ptr<std::string> ptr,
+                                     std::string ui_type)
 {
   if (ptr == NULL)
   {
@@ -487,7 +496,10 @@ bool ParameterParser::registerString(const std::string param, std::string* ptr, 
 // "slider" is default ui_type
 // 0 is default min
 // 1 is default max
-bool ParameterParser::registerInt(const std::string param, int* ptr, int min, int max, std::string ui_type)
+bool ParameterParser::registerInt(const std::string param,
+                                  std::shared_ptr<int> ptr,
+                                  int min, int max,
+                                  std::string ui_type)
 {
   if (ptr == NULL)
   {
@@ -517,7 +529,9 @@ bool ParameterParser::registerInt(const std::string param, int* ptr, int min, in
 
 // ui_type has to be dropdown
 // ptr* should have the default selected option
-bool ParameterParser::registerEnum(const std::string param, std::string* ptr, std::vector<std::string> options)
+bool ParameterParser::registerEnum(const std::string param,
+                                   std::shared_ptr<std::string> ptr,
+                                   std::vector<std::string> options)
 {
   if (ptr == NULL)
   {
