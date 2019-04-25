@@ -16,8 +16,9 @@ All rights reserved.
 #include <ros/ros.h>
 
 #include <robot_controllers_interface/handle.h>
-#include <craftsman_msgs/PlanResult.h>
+#include <robot_controllers_interface/parameter_parser.h>
 
+#include <craftsman_msgs/PlanResult.h>
 
 /**
  * \mainpage
@@ -72,6 +73,9 @@ public:
     name_ = nh.getNamespace();
     // remove leading slash
     if (name_.at(0) == '/') name_.erase(0, 1);
+
+    parser_ = std::make_shared<robot_controllers::ParameterParser>(nh, getName(), "planner");
+
     return 0;
   }
 
@@ -140,6 +144,8 @@ protected:
 
   /** @brief The list of conditioning metrics */
   std::vector<std::string> conditioning_metrics_;
+
+  std::shared_ptr<robot_controllers::ParameterParser> parser_;
 };
 
 // Some typedefs

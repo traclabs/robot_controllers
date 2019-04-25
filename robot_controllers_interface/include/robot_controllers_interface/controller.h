@@ -41,6 +41,7 @@
 #include <boost/bind.hpp>
 
 #include <robot_controllers_interface/handle.h>
+#include <robot_controllers_interface/parameter_parser.h>
 
 /**
  * \mainpage
@@ -121,6 +122,8 @@ public:
       ROS_ERROR_STREAM("Controller::init() -- please initialize ref_sub_ to subscribe to data on getReferenceTopic()");
     }
 
+    parser_ = std::make_shared<robot_controllers::ParameterParser>(nh, getName(), "controller");
+
     return 0;
   }
 
@@ -199,7 +202,6 @@ public:
     return cmd_topic_;
   }
 
-
   /** @brief the publisher to send outputs to */
   ros::Publisher cmd_pub_;
 
@@ -211,6 +213,9 @@ public:
 
   /** @brief the subscriber topic name to receive inputs from */
   std::string ref_topic_;
+
+protected:
+  std::shared_ptr<robot_controllers::ParameterParser> parser_;
 
 private:
   std::string name_;
