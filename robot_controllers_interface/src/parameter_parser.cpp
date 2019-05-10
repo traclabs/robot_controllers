@@ -13,6 +13,10 @@ ParameterParser::ParameterParser(const ros::NodeHandle _nh, const std::string _n
                   << parsing_type_ << "\' for \'" << manager_name_ << "\'");
   param_update_timer_ = nh_.createTimer(ros::Duration(1), &ParameterParser::paramUpdatesCallback, this, false);
   param_update_timer_.start();
+
+  // todo make sure we aren't already advertising these services
+  save_srv_ = nh_.advertiseService("/parameter_parser/save_reconfigure_values", &ParameterParser::saveService, this);
+  load_srv_ = nh_.advertiseService("/parameter_parser/load_reconfigure_values", &ParameterParser::loadService, this);
 }
 
 
@@ -564,6 +568,172 @@ bool ParameterParser::registerEnum(const std::string param,
 }
 
 
+bool ParameterParser::saveService(craftsman_msgs::ParamFile::Request  &req,
+                                  craftsman_msgs::ParamFile::Response &res)
+{
+  ROS_DEBUG_STREAM("ParameterParser::saveService() -- saving parameters for robot: \'" << req.robot << "\'"
+                  << ", group: \'" << req.group << "\' for type: \'" << req.type << "\' in pkg: " << req.pkg);
+
+  std::string yaml_path = ros::package::getPath("craftsman_common");
+  if (yaml_path.empty())
+  {
+    ROS_ERROR_STREAM("ParameterParser::parseFileParams() -- couldn't find path to package");
+    return false;
+  }
+
+  std::string file = toString(req.robot + "_" + req.group + "_" + req.type);
+  std::string fileext = file + ".dat";
+  std::string filepath = yaml_path + "/config/" + fileext;
+  ROS_INFO_STREAM("ParameterParser::saveService() -- saving parameters to: " << filepath);
+
+  // convert our map of params we monitor to a ROS msg for easy serialization
+  craftsman_msgs::ParamMap param_map;
+  param_map.type = file;
+  for (auto dpv : dynamic_param_vals_)
+  {
+    craftsman_msgs::ParamKeyVal param;
+    param.key = dpv.first;
+    param.value = dpv.second.toXml();
+    param_map.keyvalues.push_back(param);
+  }
+
+  // write parameters to (binary) file
+  try
+  {
+    std::ofstream ofs(filepath, std::ios::out | std::ios::binary);
+
+    uint32_t serial_size = ros::serialization::serializationLength(param_map);
+    boost::shared_array<uint8_t> obuffer(new uint8_t[serial_size]);
+    ros::serialization::OStream ostream(obuffer.get(), serial_size);
+    ros::serialization::serialize(ostream, param_map);
+    ofs.write(reinterpret_cast<char*>(obuffer.get()), serial_size);
+
+    ofs.close();
+  }
+  catch (...)
+  {
+    ROS_ERROR_STREAM("ParameterParser::saveService() -- error writing file");
+    return true;
+  }
+
+  if (!loadFromFile(file))
+  {
+    ROS_ERROR_STREAM("ParameterParser::saveService() -- could not load recently saved parameters!");
+  }
+
+  return true;
+}
+
+
+bool ParameterParser::loadService(craftsman_msgs::ParamFile::Request  &req,
+                                  craftsman_msgs::ParamFile::Response &res)
+{
+  ROS_INFO_STREAM("ParameterParser::loadService() -- loading parameters for robot: \'" << req.robot << "\'"
+                  << ", group: \'" << req.group << "\' of type: \'" << req.type << "\'");
+
+  std::string file = req.robot + "_" + req.group + "_" + req.type;
+  res.success = loadFromFile(toString(file));
+
+  return true;
+}
+
+
+std::string ParameterParser::toString(std::string str)
+{
+  std::size_t found = str.find_first_of("/");
+
+  if (found == std::string::npos)
+    return str;
+
+  while (found != std::string::npos)
+  {
+    str[found] = '_';
+    found = str.find_first_of("/", found + 1);
+  }
+
+  return str;
+}
+
+
+bool ParameterParser::loadFromFile(std::string file)
+{
+  ROS_DEBUG_STREAM("ParameterParser::loadFromFile() -- attempting to load saved parameters from file: \'"
+                   << file << "\'");
+
+  std::string yaml_path = ros::package::getPath("craftsman_common");
+  if (yaml_path.empty())
+  {
+    ROS_ERROR_STREAM("ParameterParser::loadFromFile() -- couldn't find path to package");
+    return false;
+  }
+
+  std::string fileext = file + ".dat";
+  std::string filepath = yaml_path + "/config/" + fileext;
+
+  // read from bin info file
+  try
+  {
+    craftsman_msgs::ParamMap param_map;
+
+    std::ifstream ifs(filepath, std::ios::in | std::ios::binary);
+    ifs.seekg(0, std::ios::end);
+    std::streampos end = ifs.tellg();
+    ifs.seekg(0, std::ios::beg);
+    std::streampos begin = ifs.tellg();
+
+    uint32_t file_size = end - begin;
+    boost::shared_array<uint8_t> ibuffer(new uint8_t[file_size]);
+    ifs.read(reinterpret_cast<char*>(ibuffer.get()), file_size);
+    ros::serialization::IStream istream(ibuffer.get(), file_size);
+    ros::serialization::deserialize(istream, param_map);
+    ifs.close();
+
+    ROS_WARN_STREAM(".....................starting to load: "<<param_map.type<<"...................");
+    if (param_map.type == file)
+    {
+      ROS_INFO_STREAM("matched types");
+      for (auto kv : param_map.keyvalues)
+      {
+        ROS_INFO_STREAM("  ++  reading in param key: "<<kv.key);
+        ROS_INFO_STREAM("  ++  reading in param val: "<<kv.value<<"\n");
+
+        if (dynamic_param_vals_.find(kv.key) != dynamic_param_vals_.end())
+        {
+          ROS_WARN_STREAM("    --    found match - updating value from: "<<dynamic_param_vals_[kv.key].toXml());
+          XmlRpc::XmlRpcValue xmlval;
+          int star = 0;
+          int* starint = &star;
+          if (xmlval.fromXml(kv.value, starint))
+          {
+            ROS_INFO_STREAM("    --    converted from xml!");
+            dynamic_param_vals_[kv.key] = xmlval;
+          }
+          else
+          {
+            ROS_ERROR_STREAM("couldnt get from xml");
+          }
+        }
+        else
+        {
+          ROS_ERROR_STREAM("    --    did NOT find match - should create value"); 
+        }
+      }
+    }
+    else
+    {
+      ROS_ERROR_STREAM("couldn't match type: \'" << param_map.type<<"\' to \'" << toString(manager_name_)<<"\'");
+    }
+
+    ROS_WARN_STREAM("......................done loading......................");
+  }
+  catch (...)
+  {
+    ROS_ERROR_STREAM("AffordanceTemplateParser::loadFromObject() -- error reading file");
+    return false;
+  }
+
+  return true;
+}
 
 //
 // TODO -- this may be worth adding later
@@ -607,7 +777,7 @@ bool ParameterParser::registerEnum(const std::string param,
 //   {
 //     if (fp.find(filename_) != std::string::npos)
 //     {
-//       ROS_INFO_STREAM("ParameterParser::parseFileParams() -- found config fire at: " << fp);
+//       ROS_INFO_STREAM("ParameterParser::parseFileParams() -- found config file at: " << fp);
 //       file_path_ = fp;
 //       break;
 //     }

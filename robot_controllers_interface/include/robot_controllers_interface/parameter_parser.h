@@ -13,6 +13,11 @@
 
 #include <boost/filesystem.hpp>
 
+#include <craftsman_msgs/ParamMap.h>
+#include <craftsman_msgs/ParamFile.h>
+#include <craftsman_msgs/ParamKeyVal.h>
+
+
 typedef std::map<std::string, std::string> ParamGroup;
 
 namespace robot_controllers
@@ -31,10 +36,17 @@ class ParameterParser
   void expandParamArray(XmlRpc::XmlRpcValue& val, std::string& param_name);
   void paramUpdatesCallback(const ros::TimerEvent&);
   void findFilesInDir(std::string path, std::vector<std::string>& files_found);
+  bool saveService(craftsman_msgs::ParamFile::Request &req, craftsman_msgs::ParamFile::Response &res);
+  bool loadService(craftsman_msgs::ParamFile::Request &req, craftsman_msgs::ParamFile::Response &res);
+  bool loadFromFile(std::string file);
+  std::string toString(std::string str);
 
   ros::NodeHandle nh_;
 
   ros::Timer param_update_timer_;
+
+  ros::ServiceServer save_srv_;
+  ros::ServiceServer load_srv_;
 
   // class members
   std::string manager_name_;
