@@ -421,7 +421,7 @@ bool ParameterParser::registerDouble(const std::string param,
   }
 
   ROS_INFO_STREAM("ParameterParser::registerDouble() -- registering param: \'" << param <<
-                  " with value: \'" << *ptr << "\' at address: " << ptr);
+                  "\' with value: \'" << *ptr << "\' at address: " << ptr);
 
   std::string param_base = ((param.at(0) == '/') ? "params" : "params/") + param;
   std::string param_value = param_base + "/value";
@@ -452,7 +452,7 @@ bool ParameterParser::registerBool(const std::string param,
   }
 
   ROS_INFO_STREAM("ParameterParser::registerBool() -- registering param: \'" << param <<
-                  " with value: \'" << *ptr << "\' at address: " << ptr);
+                  "\' with value: \'" << *ptr << "\' at address: " << ptr);
 
   std::string param_base = ((param.at(0) == '/') ? "params" : "params/") + param;
   std::string param_value = param_base + "/value";
@@ -480,7 +480,7 @@ bool ParameterParser::registerString(const std::string param,
   }
 
   ROS_INFO_STREAM("ParameterParser::registerString() -- registering param: \'" << param <<
-                  " with value: \'" << *ptr << "\' at address: " << ptr);
+                  "\' with value: \'" << *ptr << "\' at address: " << ptr);
 
   std::string param_base = ((param.at(0) == '/') ? "params" : "params/") + param;
   std::string param_value = param_base + "/value";
@@ -511,7 +511,7 @@ bool ParameterParser::registerInt(const std::string param,
   }
 
   ROS_INFO_STREAM("ParameterParser::registerInt() -- registering param: \'" << param <<
-                  " with value: \'" << *ptr << "\' at address: " << ptr);
+                  "\' with value: \'" << *ptr << "\' at address: " << ptr);
 
   std::string param_base = ((param.at(0) == '/') ? "params" : "params/") + param;
   std::string param_value = param_base + "/value";
@@ -543,7 +543,7 @@ bool ParameterParser::registerEnum(const std::string param,
   }
 
   ROS_INFO_STREAM("ParameterParser::registerDouble() -- registering param: \'" << param <<
-                  " with value: \'" << *ptr << "\' at address: " << ptr);
+                  "\' with value: \'" << *ptr << "\' at address: " << ptr);
 
   if (options.empty())
   {
@@ -688,52 +688,45 @@ bool ParameterParser::loadFromFile(std::string file)
     ros::serialization::deserialize(istream, param_map);
     ifs.close();
 
-    ROS_WARN_STREAM(".....................starting to load: "<<param_map.type<<"...................");
     if (param_map.type == file)
     {
-      ROS_INFO_STREAM("matched types");
-      for (auto kv : param_map.keyvalues)
+      for (auto keyval : param_map.keyvalues)
       {
-        ROS_INFO_STREAM("  ++  reading in param key: "<<kv.key);
-        ROS_INFO_STREAM("  ++  reading in param val: "<<kv.value<<"\n");
-
-        if (dynamic_param_vals_.find(kv.key) != dynamic_param_vals_.end())
+        if (dynamic_param_vals_.find(keyval.key) != dynamic_param_vals_.end())
         {
-          ROS_WARN_STREAM("    --    found match - updating value from: "<<dynamic_param_vals_[kv.key].toXml());
           XmlRpc::XmlRpcValue xmlval;
-          int star = 0;
-          int* starint = &star;
-          if (xmlval.fromXml(kv.value, starint))
+          int offset = 0;
+          int* offset_ptr = &offset;
+          if (xmlval.fromXml(keyval.value, offset_ptr))
           {
-            ROS_INFO_STREAM("    --    converted from xml!");
-            dynamic_param_vals_[kv.key] = xmlval;
+            ROS_INFO_STREAM("ParameterParser::loadFromFile() -- found saved value for parameter: \'"
+                            << keyval.key << "\'");
+            dynamic_param_vals_[keyval.key] = xmlval;
+            nh_.setParam(keyval.key, xmlval);
           }
           else
           {
-            ROS_ERROR_STREAM("couldnt get from xml");
+            ROS_ERROR_STREAM("ParameterParser::loadFromFile() -- couldnt convert XML: \'" << keyval.value << "\'");
           }
-        }
-        else
-        {
-          ROS_ERROR_STREAM("    --    did NOT find match - should create value"); 
         }
       }
     }
     else
     {
-      ROS_ERROR_STREAM("couldn't match type: \'" << param_map.type<<"\' to \'" << toString(manager_name_)<<"\'");
+      ROS_ERROR_STREAM("ParameterParser::loadFromFile() -- couldn't match type: \'" << param_map.type
+                      << "\' to \'" << toString(manager_name_) << "\'");
     }
-
-    ROS_WARN_STREAM("......................done loading......................");
   }
   catch (...)
   {
-    ROS_ERROR_STREAM("AffordanceTemplateParser::loadFromObject() -- error reading file");
+    ROS_WARN_STREAM("ParameterParser::loadFromFile() -- failed to read file: \'"
+                    << fileext << "\'; file may not exist");
     return false;
   }
 
   return true;
 }
+
 
 //
 // TODO -- this may be worth adding later
