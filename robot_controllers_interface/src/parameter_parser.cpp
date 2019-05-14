@@ -14,9 +14,12 @@ ParameterParser::ParameterParser(const ros::NodeHandle _nh, const std::string _n
   param_update_timer_ = nh_.createTimer(ros::Duration(1), &ParameterParser::paramUpdatesCallback, this, false);
   param_update_timer_.start();
 
-  // todo make sure we aren't already advertising these services
-  save_srv_ = nh_.advertiseService("/parameter_parser/save_reconfigure_values", &ParameterParser::saveService, this);
-  load_srv_ = nh_.advertiseService("/parameter_parser/load_reconfigure_values", &ParameterParser::loadService, this);
+  std::string save_srv_str = "/parameter_parser/save_reconfigure_values";
+  if (!ros::service::exists(save_srv_str, false))
+    save_srv_ = nh_.advertiseService(save_srv_str, &ParameterParser::saveService, this);
+  std::string load_srv_str = "/parameter_parser/load_reconfigure_values";
+  if (!ros::service::exists(load_srv_str, false))
+    load_srv_ = nh_.advertiseService(load_srv_str, &ParameterParser::loadService, this);
 }
 
 
