@@ -86,12 +86,12 @@ int ControllerManager::init(ros::NodeHandle& nh)
 
 int ControllerManager::requestStart(const std::string& name)
 {
-  ROS_WARN_STREAM("looking for controller: " << name);
+  ROS_DEBUG_STREAM("looking for controller: " << name);
   // Find requested controller
   ControllerLoaderPtr controller;
   for (ControllerList::iterator c = controllers_.begin(); c != controllers_.end(); c++)
   {
-    ROS_WARN_STREAM("found controller: " << (*c)->getController()->getName());
+    ROS_DEBUG_STREAM("found controller: " << (*c)->getController()->getName());
     if ((*c)->getController()->getName() == name)
     {
       controller = *c;
