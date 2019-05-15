@@ -51,6 +51,7 @@ class ParameterParser
 
   ros::ServiceServer save_srv_;
   ros::ServiceServer load_srv_;
+  ros::ServiceServer restore_srv_;
 
   // class members
   std::string manager_name_;

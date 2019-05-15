@@ -19,7 +19,7 @@ ParameterParser::ParameterParser(const ros::NodeHandle _nh, const std::string _n
   std::string load_srv_str = "/" + manager_name_ + "/load_reconfigure_values";
   load_srv_ = nh_.advertiseService(load_srv_str, &ParameterParser::loadService, this);
   std::string restore_srv_str = "/" + manager_name_ + "/restore_reconfigure_values";
-  load_srv_ = nh_.advertiseService(restore_srv_str, &ParameterParser::restoreService, this);
+  restore_srv_ = nh_.advertiseService(restore_srv_str, &ParameterParser::restoreService, this);
 }
 
 
@@ -654,14 +654,19 @@ bool ParameterParser::loadService(craftsman_msgs::ParamFile::Request  &req,
 bool ParameterParser::restoreService(craftsman_msgs::ParamRestore::Request  &req,
                                      craftsman_msgs::ParamRestore::Response &res)
 {
-  ROS_INFO_STREAM("ParameterParser::restoreService() -- loading parameters for robot: \'" << req.robot << "\'"
-                  << ", group: \'" << req.group << "\' of type: \'" << req.type << "\'");
-
   std::string file = req.robot + "/" + req.group + "/" + req.type;
   if (req.restore)
+  {
+    ROS_INFO_STREAM("ParameterParser::restoreService() -- restoring default parameters for robot: \'" << req.robot
+                    << "\'" << ", group: \'" << req.group << "\' of type: \'" << req.type << "\'");
     res.success = restoreDefaultParams(file);
+  }
   else
+  {
+    ROS_INFO_STREAM("ParameterParser::restoreService() -- restoring file parameters for robot: \'" << req.robot
+                    << "\'" << ", group: \'" << req.group << "\' of type: \'" << req.type << "\'");
     res.success = restoreFileParams(file);
+  }
 
   return true;
 }
@@ -694,6 +699,7 @@ bool ParameterParser::restoreDefaultParams(std::string type)
       found = true;
       dynamic_param_vals_[param.first] = param.second;
       nh_.setParam(param.first, param.second);
+      ROS_DEBUG_STREAM("ParameterParser::restoreDefaultParams() -- updating \'" << param.first << "\' to default values");
     }
   }
 
@@ -715,6 +721,7 @@ bool ParameterParser::restoreFileParams(std::string type)
       found = true;
       dynamic_param_vals_[param.first] = param.second;
       nh_.setParam(param.first, param.second);
+      ROS_DEBUG_STREAM("ParameterParser::restoreFileParams() -- updating \'" << param.first << "\' to save file");
     }
   }
 
@@ -728,7 +735,7 @@ bool ParameterParser::restoreFileParams(std::string type)
 
 bool ParameterParser::loadFromFile(std::string file)
 {
-  ROS_DEBUG_STREAM("ParameterParser::loadFromFile() -- attempting to load saved parameters from file: \'"
+  ROS_INFO_STREAM("ParameterParser::loadFromFile() -- attempting to load saved parameters from file: \'"
                    << file << "\'");
 
   std::string yaml_path = ros::package::getPath("craftsman_common");
@@ -770,7 +777,7 @@ bool ParameterParser::loadFromFile(std::string file)
           int* offset_ptr = &offset;
           if (xmlval.fromXml(keyval.value, offset_ptr))
           {
-            ROS_DEBUG_STREAM("ParameterParser::loadFromFile() -- found saved value for parameter: \'"
+            ROS_INFO_STREAM("ParameterParser::loadFromFile() -- found saved value for parameter: \'"
                             << keyval.key << "\'");
             dynamic_param_vals_[keyval.key] = xmlval;
             file_param_vals_[keyval.key] = xmlval;
