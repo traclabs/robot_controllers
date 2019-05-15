@@ -16,6 +16,7 @@
 #include <craftsman_msgs/ParamMap.h>
 #include <craftsman_msgs/ParamFile.h>
 #include <craftsman_msgs/ParamKeyVal.h>
+#include <craftsman_msgs/ParamRestore.h>
 
 
 typedef std::map<std::string, std::string> ParamGroup;
@@ -38,7 +39,10 @@ class ParameterParser
   void findFilesInDir(std::string path, std::vector<std::string>& files_found);
   bool saveService(craftsman_msgs::ParamFile::Request &req, craftsman_msgs::ParamFile::Response &res);
   bool loadService(craftsman_msgs::ParamFile::Request &req, craftsman_msgs::ParamFile::Response &res);
+  bool restoreService(craftsman_msgs::ParamRestore::Request &req, craftsman_msgs::ParamRestore::Response &res);
   bool loadFromFile(std::string file);
+  bool restoreFileParams(std::string type);
+  bool restoreDefaultParams(std::string type);
   std::string toString(std::string str);
 
   ros::NodeHandle nh_;
@@ -58,7 +62,9 @@ class ParameterParser
   std::string file_path_;
 
   // e.g. "/valkyrie_arm/arm/craftsman_controllers/CartesianPoseController/params/fb_trans/p_gain/value" : XmlRpc::TypeDouble  // NOLINT
-  std::map<std::string, XmlRpc::XmlRpcValue> dynamic_param_vals_;
+  std::map<std::string, XmlRpc::XmlRpcValue> dynamic_param_vals_;  // hold current values
+  std::map<std::string, XmlRpc::XmlRpcValue> default_param_vals_;  // these will be default as defined in the the controller/planner files when registering
+  std::map<std::string, XmlRpc::XmlRpcValue> file_param_vals_;  // these will start out as the default values, will be updated if there is a save file loaded in
 
   // dynamic maps e.g. "fb_trans/p_gain" : *fb_trans_p_value
   std::map<std::string, std::shared_ptr<bool>> dynamic_bools_;

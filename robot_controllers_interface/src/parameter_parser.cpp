@@ -14,12 +14,12 @@ ParameterParser::ParameterParser(const ros::NodeHandle _nh, const std::string _n
   param_update_timer_ = nh_.createTimer(ros::Duration(1), &ParameterParser::paramUpdatesCallback, this, false);
   param_update_timer_.start();
 
-  std::string save_srv_str = "/parameter_parser/save_reconfigure_values";
-  if (!ros::service::exists(save_srv_str, false))
-    save_srv_ = nh_.advertiseService(save_srv_str, &ParameterParser::saveService, this);
-  std::string load_srv_str = "/parameter_parser/load_reconfigure_values";
-  if (!ros::service::exists(load_srv_str, false))
-    load_srv_ = nh_.advertiseService(load_srv_str, &ParameterParser::loadService, this);
+  std::string save_srv_str = "/" + manager_name_ + "/save_reconfigure_values";
+  save_srv_ = nh_.advertiseService(save_srv_str, &ParameterParser::saveService, this);
+  std::string load_srv_str = "/" + manager_name_ + "/load_reconfigure_values";
+  load_srv_ = nh_.advertiseService(load_srv_str, &ParameterParser::loadService, this);
+  std::string restore_srv_str = "/" + manager_name_ + "/restore_reconfigure_values";
+  load_srv_ = nh_.advertiseService(restore_srv_str, &ParameterParser::restoreService, this);
 }
 
 
@@ -439,6 +439,8 @@ bool ParameterParser::registerDouble(const std::string param,
 
   std::string full_param = nh_.getNamespace() + "/" + param_value;
   dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  default_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  file_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
 
   return true;
 }
@@ -467,6 +469,8 @@ bool ParameterParser::registerBool(const std::string param,
 
   std::string full_param = nh_.getNamespace() + "/" + param_value;
   dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  default_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  file_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
 
   return true;
 }
@@ -495,6 +499,8 @@ bool ParameterParser::registerString(const std::string param,
 
   std::string full_param = nh_.getNamespace() + "/" + param_value;
   dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  default_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  file_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
 
   return true;
 }
@@ -529,6 +535,8 @@ bool ParameterParser::registerInt(const std::string param,
 
   std::string full_param = nh_.getNamespace() + "/" + param_value;
   dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  default_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  file_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
 
   return true;
 }
@@ -566,6 +574,8 @@ bool ParameterParser::registerEnum(const std::string param,
 
   std::string full_param = nh_.getNamespace() + "/" + param_value;
   dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  default_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  file_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
 
   return true;
 }
@@ -586,7 +596,7 @@ bool ParameterParser::saveService(craftsman_msgs::ParamFile::Request  &req,
 
   std::string file = toString(req.robot + "_" + req.group + "_" + req.type);
   std::string fileext = file + ".dat";
-  std::string filepath = yaml_path + "/config/" + fileext;
+  std::string filepath = yaml_path + "/config/.defaults/" + fileext;
   ROS_INFO_STREAM("ParameterParser::saveService() -- saving parameters to: " << filepath);
 
   // convert our map of params we monitor to a ROS msg for easy serialization
@@ -641,6 +651,22 @@ bool ParameterParser::loadService(craftsman_msgs::ParamFile::Request  &req,
 }
 
 
+bool ParameterParser::restoreService(craftsman_msgs::ParamRestore::Request  &req,
+                                     craftsman_msgs::ParamRestore::Response &res)
+{
+  ROS_INFO_STREAM("ParameterParser::restoreService() -- loading parameters for robot: \'" << req.robot << "\'"
+                  << ", group: \'" << req.group << "\' of type: \'" << req.type << "\'");
+
+  std::string file = req.robot + "/" + req.group + "/" + req.type;
+  if (req.restore)
+    res.success = restoreDefaultParams(file);
+  else
+    res.success = restoreFileParams(file);
+
+  return true;
+}
+
+
 std::string ParameterParser::toString(std::string str)
 {
   std::size_t found = str.find_first_of("/");
@@ -658,6 +684,48 @@ std::string ParameterParser::toString(std::string str)
 }
 
 
+bool ParameterParser::restoreDefaultParams(std::string type)
+{
+  bool found = false;
+  for (auto param : default_param_vals_)
+  {
+    if (param.first.find(type) != std::string::npos)
+    {
+      found = true;
+      dynamic_param_vals_[param.first] = param.second;
+      nh_.setParam(param.first, param.second);
+    }
+  }
+
+  if (!found)
+    ROS_ERROR_STREAM("ParameterParser::restoreDefaultParams() -- couldn't find type: \'"
+                      << type << "\' default value");
+
+  return true;
+}
+
+
+bool ParameterParser::restoreFileParams(std::string type)
+{
+  bool found = false;
+  for (auto param : file_param_vals_)
+  {
+    if (param.first.find(type) != std::string::npos)
+    {
+      found = true;
+      dynamic_param_vals_[param.first] = param.second;
+      nh_.setParam(param.first, param.second);
+    }
+  }
+
+  if (!found)
+    ROS_ERROR_STREAM("ParameterParser::restoreFileParams() -- couldn't find type: \'"
+                      << type << "\' restore value");
+
+  return true;
+}
+
+
 bool ParameterParser::loadFromFile(std::string file)
 {
   ROS_DEBUG_STREAM("ParameterParser::loadFromFile() -- attempting to load saved parameters from file: \'"
@@ -671,7 +739,7 @@ bool ParameterParser::loadFromFile(std::string file)
   }
 
   std::string fileext = file + ".dat";
-  std::string filepath = yaml_path + "/config/" + fileext;
+  std::string filepath = yaml_path + "/config/.defaults/" + fileext;
 
   // read from bin info file
   try
@@ -702,9 +770,10 @@ bool ParameterParser::loadFromFile(std::string file)
           int* offset_ptr = &offset;
           if (xmlval.fromXml(keyval.value, offset_ptr))
           {
-            ROS_INFO_STREAM("ParameterParser::loadFromFile() -- found saved value for parameter: \'"
+            ROS_DEBUG_STREAM("ParameterParser::loadFromFile() -- found saved value for parameter: \'"
                             << keyval.key << "\'");
             dynamic_param_vals_[keyval.key] = xmlval;
+            file_param_vals_[keyval.key] = xmlval;
             nh_.setParam(keyval.key, xmlval);
           }
           else
