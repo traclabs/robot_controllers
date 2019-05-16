@@ -13,6 +13,13 @@ ParameterParser::ParameterParser(const ros::NodeHandle _nh, const std::string _n
                   << parsing_type_ << "\' for \'" << manager_name_ << "\'");
   param_update_timer_ = nh_.createTimer(ros::Duration(1), &ParameterParser::paramUpdatesCallback, this, false);
   param_update_timer_.start();
+
+  std::string save_srv_str = "/" + manager_name_ + "/save_reconfigure_values";
+  save_srv_ = nh_.advertiseService(save_srv_str, &ParameterParser::saveService, this);
+  std::string load_srv_str = "/" + manager_name_ + "/load_reconfigure_values";
+  load_srv_ = nh_.advertiseService(load_srv_str, &ParameterParser::loadService, this);
+  std::string restore_srv_str = "/" + manager_name_ + "/restore_reconfigure_values";
+  restore_srv_ = nh_.advertiseService(restore_srv_str, &ParameterParser::restoreService, this);
 }
 
 
@@ -417,7 +424,7 @@ bool ParameterParser::registerDouble(const std::string param,
   }
 
   ROS_INFO_STREAM("ParameterParser::registerDouble() -- registering param: \'" << param <<
-                  " with value: \'" << *ptr << "\' at address: " << ptr);
+                  "\' with value: \'" << *ptr << "\' at address: " << ptr);
 
   std::string param_base = ((param.at(0) == '/') ? "params" : "params/") + param;
   std::string param_value = param_base + "/value";
@@ -432,6 +439,8 @@ bool ParameterParser::registerDouble(const std::string param,
 
   std::string full_param = nh_.getNamespace() + "/" + param_value;
   dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  default_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  file_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
 
   return true;
 }
@@ -448,7 +457,7 @@ bool ParameterParser::registerBool(const std::string param,
   }
 
   ROS_INFO_STREAM("ParameterParser::registerBool() -- registering param: \'" << param <<
-                  " with value: \'" << *ptr << "\' at address: " << ptr);
+                  "\' with value: \'" << *ptr << "\' at address: " << ptr);
 
   std::string param_base = ((param.at(0) == '/') ? "params" : "params/") + param;
   std::string param_value = param_base + "/value";
@@ -460,6 +469,8 @@ bool ParameterParser::registerBool(const std::string param,
 
   std::string full_param = nh_.getNamespace() + "/" + param_value;
   dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  default_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  file_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
 
   return true;
 }
@@ -476,7 +487,7 @@ bool ParameterParser::registerString(const std::string param,
   }
 
   ROS_INFO_STREAM("ParameterParser::registerString() -- registering param: \'" << param <<
-                  " with value: \'" << *ptr << "\' at address: " << ptr);
+                  "\' with value: \'" << *ptr << "\' at address: " << ptr);
 
   std::string param_base = ((param.at(0) == '/') ? "params" : "params/") + param;
   std::string param_value = param_base + "/value";
@@ -488,6 +499,8 @@ bool ParameterParser::registerString(const std::string param,
 
   std::string full_param = nh_.getNamespace() + "/" + param_value;
   dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  default_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  file_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
 
   return true;
 }
@@ -507,7 +520,7 @@ bool ParameterParser::registerInt(const std::string param,
   }
 
   ROS_INFO_STREAM("ParameterParser::registerInt() -- registering param: \'" << param <<
-                  " with value: \'" << *ptr << "\' at address: " << ptr);
+                  "\' with value: \'" << *ptr << "\' at address: " << ptr);
 
   std::string param_base = ((param.at(0) == '/') ? "params" : "params/") + param;
   std::string param_value = param_base + "/value";
@@ -522,6 +535,8 @@ bool ParameterParser::registerInt(const std::string param,
 
   std::string full_param = nh_.getNamespace() + "/" + param_value;
   dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  default_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  file_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
 
   return true;
 }
@@ -539,7 +554,7 @@ bool ParameterParser::registerEnum(const std::string param,
   }
 
   ROS_INFO_STREAM("ParameterParser::registerDouble() -- registering param: \'" << param <<
-                  " with value: \'" << *ptr << "\' at address: " << ptr);
+                  "\' with value: \'" << *ptr << "\' at address: " << ptr);
 
   if (options.empty())
   {
@@ -559,10 +574,238 @@ bool ParameterParser::registerEnum(const std::string param,
 
   std::string full_param = nh_.getNamespace() + "/" + param_value;
   dynamic_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  default_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
+  file_param_vals_[full_param] = XmlRpc::XmlRpcValue(*ptr);
 
   return true;
 }
 
+
+bool ParameterParser::saveService(craftsman_msgs::ParamFile::Request  &req,
+                                  craftsman_msgs::ParamFile::Response &res)
+{
+  ROS_DEBUG_STREAM("ParameterParser::saveService() -- saving parameters for robot: \'" << req.robot << "\'"
+                  << ", group: \'" << req.group << "\' for type: \'" << req.type << "\' in pkg: " << req.pkg);
+
+  std::string yaml_path = ros::package::getPath("craftsman_common");
+  if (yaml_path.empty())
+  {
+    ROS_ERROR_STREAM("ParameterParser::parseFileParams() -- couldn't find path to package");
+    return false;
+  }
+
+  std::string file = toString(req.robot + "_" + req.group + "_" + req.type);
+  std::string fileext = file + ".dat";
+  std::string filepath = yaml_path + "/config/.defaults/" + fileext;
+  ROS_INFO_STREAM("ParameterParser::saveService() -- saving parameters to: " << filepath);
+
+  // convert our map of params we monitor to a ROS msg for easy serialization
+  craftsman_msgs::ParamMap param_map;
+  param_map.type = file;
+  for (auto dpv : dynamic_param_vals_)
+  {
+    craftsman_msgs::ParamKeyVal param;
+    param.key = dpv.first;
+    param.value = dpv.second.toXml();
+    param_map.keyvalues.push_back(param);
+  }
+
+  // write parameters to (binary) file
+  try
+  {
+    std::ofstream ofs(filepath, std::ios::out | std::ios::binary);
+
+    uint32_t serial_size = ros::serialization::serializationLength(param_map);
+    boost::shared_array<uint8_t> obuffer(new uint8_t[serial_size]);
+    ros::serialization::OStream ostream(obuffer.get(), serial_size);
+    ros::serialization::serialize(ostream, param_map);
+    ofs.write(reinterpret_cast<char*>(obuffer.get()), serial_size);
+
+    ofs.close();
+  }
+  catch (...)
+  {
+    ROS_ERROR_STREAM("ParameterParser::saveService() -- error writing file");
+    return true;
+  }
+
+  if (!loadFromFile(file))
+  {
+    ROS_ERROR_STREAM("ParameterParser::saveService() -- could not load recently saved parameters!");
+  }
+
+  return true;
+}
+
+
+bool ParameterParser::loadService(craftsman_msgs::ParamFile::Request  &req,
+                                  craftsman_msgs::ParamFile::Response &res)
+{
+  ROS_INFO_STREAM("ParameterParser::loadService() -- loading parameters for robot: \'" << req.robot << "\'"
+                  << ", group: \'" << req.group << "\' of type: \'" << req.type << "\'");
+
+  std::string file = req.robot + "_" + req.group + "_" + req.type;
+  res.success = loadFromFile(toString(file));
+
+  return true;
+}
+
+
+bool ParameterParser::restoreService(craftsman_msgs::ParamRestore::Request  &req,
+                                     craftsman_msgs::ParamRestore::Response &res)
+{
+  std::string file = req.robot + "/" + req.group + "/" + req.type;
+  if (req.restore)
+  {
+    ROS_INFO_STREAM("ParameterParser::restoreService() -- restoring default parameters for robot: \'" << req.robot
+                    << "\'" << ", group: \'" << req.group << "\' of type: \'" << req.type << "\'");
+    res.success = restoreDefaultParams(file);
+  }
+  else
+  {
+    ROS_INFO_STREAM("ParameterParser::restoreService() -- restoring file parameters for robot: \'" << req.robot
+                    << "\'" << ", group: \'" << req.group << "\' of type: \'" << req.type << "\'");
+    res.success = restoreFileParams(file);
+  }
+
+  return true;
+}
+
+
+std::string ParameterParser::toString(std::string str)
+{
+  std::size_t found = str.find_first_of("/");
+
+  if (found == std::string::npos)
+    return str;
+
+  while (found != std::string::npos)
+  {
+    str[found] = '_';
+    found = str.find_first_of("/", found + 1);
+  }
+
+  return str;
+}
+
+
+bool ParameterParser::restoreDefaultParams(std::string type)
+{
+  bool found = false;
+  for (auto param : default_param_vals_)
+  {
+    if (param.first.find(type) != std::string::npos)
+    {
+      found = true;
+      dynamic_param_vals_[param.first] = param.second;
+      nh_.setParam(param.first, param.second);
+      ROS_DEBUG_STREAM("ParameterParser::restoreDefaultParams() -- updating \'"
+                        << param.first << "\' to default values");
+    }
+  }
+
+  if (!found)
+    ROS_ERROR_STREAM("ParameterParser::restoreDefaultParams() -- couldn't find type: \'"
+                      << type << "\' default value");
+
+  return true;
+}
+
+
+bool ParameterParser::restoreFileParams(std::string type)
+{
+  bool found = false;
+  for (auto param : file_param_vals_)
+  {
+    if (param.first.find(type) != std::string::npos)
+    {
+      found = true;
+      dynamic_param_vals_[param.first] = param.second;
+      nh_.setParam(param.first, param.second);
+      ROS_DEBUG_STREAM("ParameterParser::restoreFileParams() -- updating \'" << param.first << "\' to save file");
+    }
+  }
+
+  if (!found)
+    ROS_ERROR_STREAM("ParameterParser::restoreFileParams() -- couldn't find type: \'"
+                      << type << "\' restore value");
+
+  return true;
+}
+
+
+bool ParameterParser::loadFromFile(std::string file)
+{
+  ROS_INFO_STREAM("ParameterParser::loadFromFile() -- attempting to load saved parameters from file: \'"
+                   << file << "\'");
+
+  std::string yaml_path = ros::package::getPath("craftsman_common");
+  if (yaml_path.empty())
+  {
+    ROS_ERROR_STREAM("ParameterParser::loadFromFile() -- couldn't find path to package");
+    return false;
+  }
+
+  std::string fileext = file + ".dat";
+  std::string filepath = yaml_path + "/config/.defaults/" + fileext;
+
+  // read from bin info file
+  try
+  {
+    craftsman_msgs::ParamMap param_map;
+
+    std::ifstream ifs(filepath, std::ios::in | std::ios::binary);
+    ifs.seekg(0, std::ios::end);
+    std::streampos end = ifs.tellg();
+    ifs.seekg(0, std::ios::beg);
+    std::streampos begin = ifs.tellg();
+
+    uint32_t file_size = end - begin;
+    boost::shared_array<uint8_t> ibuffer(new uint8_t[file_size]);
+    ifs.read(reinterpret_cast<char*>(ibuffer.get()), file_size);
+    ros::serialization::IStream istream(ibuffer.get(), file_size);
+    ros::serialization::deserialize(istream, param_map);
+    ifs.close();
+
+    if (param_map.type == file)
+    {
+      for (auto keyval : param_map.keyvalues)
+      {
+        if (dynamic_param_vals_.find(keyval.key) != dynamic_param_vals_.end())
+        {
+          XmlRpc::XmlRpcValue xmlval;
+          int offset = 0;
+          int* offset_ptr = &offset;
+          if (xmlval.fromXml(keyval.value, offset_ptr))
+          {
+            ROS_INFO_STREAM("ParameterParser::loadFromFile() -- found saved value for parameter: \'"
+                            << keyval.key << "\'");
+            dynamic_param_vals_[keyval.key] = xmlval;
+            file_param_vals_[keyval.key] = xmlval;
+            nh_.setParam(keyval.key, xmlval);
+          }
+          else
+          {
+            ROS_ERROR_STREAM("ParameterParser::loadFromFile() -- couldnt convert XML: \'" << keyval.value << "\'");
+          }
+        }
+      }
+    }
+    else
+    {
+      ROS_ERROR_STREAM("ParameterParser::loadFromFile() -- couldn't match type: \'" << param_map.type
+                      << "\' to \'" << toString(manager_name_) << "\'");
+    }
+  }
+  catch (...)
+  {
+    ROS_WARN_STREAM("ParameterParser::loadFromFile() -- failed to read file: \'"
+                    << fileext << "\'; file may not exist");
+    return false;
+  }
+
+  return true;
+}
 
 
 //
@@ -607,7 +850,7 @@ bool ParameterParser::registerEnum(const std::string param,
 //   {
 //     if (fp.find(filename_) != std::string::npos)
 //     {
-//       ROS_INFO_STREAM("ParameterParser::parseFileParams() -- found config fire at: " << fp);
+//       ROS_INFO_STREAM("ParameterParser::parseFileParams() -- found config file at: " << fp);
 //       file_path_ = fp;
 //       break;
 //     }
