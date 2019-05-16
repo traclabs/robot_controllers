@@ -699,7 +699,8 @@ bool ParameterParser::restoreDefaultParams(std::string type)
       found = true;
       dynamic_param_vals_[param.first] = param.second;
       nh_.setParam(param.first, param.second);
-      ROS_DEBUG_STREAM("ParameterParser::restoreDefaultParams() -- updating \'" << param.first << "\' to default values");
+      ROS_DEBUG_STREAM("ParameterParser::restoreDefaultParams() -- updating \'"
+                        << param.first << "\' to default values");
     }
   }
 
